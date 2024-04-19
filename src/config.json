@@ -1,0 +1,8 @@
+{
+  "view": {
+    "engine": "mustache",
+    "path": "./src/html",
+    "suffix": "html"
+  },
+  "static": "./static"
+}
