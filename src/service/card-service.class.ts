@@ -139,6 +139,7 @@ export default class CardService {
   }
 
   // 获取比上一家大的牌
+  // TODO:顺 < 同花 < 三带二 < 四带一 < 同花顺
   public getBiggerCards(prevCards: Card[], myCards: Card[]) {
     const length = prevCards.length; // 看哪一种
     if (length === 1) { // 单张直接判定
