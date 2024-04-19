@@ -4,5 +4,5 @@
     "path": "./src/html",
     "suffix": "html"
   },
-  "static": "./static"
+  "static": "./../static"
 }
