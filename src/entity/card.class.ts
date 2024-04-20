@@ -12,6 +12,7 @@ export default class Card {
     public suit: Suit, 
     public point: number,
     public suitName: string,
-    public pointName: string
+    public pointName: string,
+    public realPoint: number = 0,
   ){}
 }

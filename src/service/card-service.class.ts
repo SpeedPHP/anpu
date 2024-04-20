@@ -2,7 +2,9 @@ import { component, log } from "typespeed";
 import PlayerCard from "../entity/player-card.class";
 import Card from "../entity/card.class";
 import { Suit, Kind, Point, KindCompare } from '../common/types';
-
+import { testStraight } from "../strategy/straight";
+import { testFlush } from "../strategy/flush";
+import { testFour } from "../strategy/four";
 type SamePointCount = {point: number, count: number};
 
 @component
@@ -109,33 +111,16 @@ export default class CardService {
 
   }
 
-  
+  public testStraight(cards: Card[]): KindCompare[] {
+    return testStraight(cards);
+  }
 
-  // 四带一，返回[{组，比较点数}]
-  // TODO: 所有的组都要加上一张的情况，才能做比较
-  // TODO：另外，KindCompare里面的groups数组要排序，方便对比
+  public testFlush(cards: Card[]): KindCompare[] {
+    return testFlush(cards);
+  }
+
   public testFour(cards: Card[]): KindCompare[] {
-    if(cards.length <= 4) { // 不够五张
-      return [];
-    }
-    let groups: Map<number, Card[]> = new Map();
-    for(let card of cards) {
-      if (groups.has(card.point)) {
-        groups.get(card.point).push(card);
-      } else {
-        groups.set(card.point, [card]);
-      }
-    }
-    const result: KindCompare[] = [];
-    for(let [point, cards] of groups.entries()) {
-      if (cards.length == 4) {
-        result.push({
-          group: cards,
-          compare: point
-        });
-      }
-    }
-    return result;
+    return testFour(cards);
   }
 
   // 获取比上一家大的牌
