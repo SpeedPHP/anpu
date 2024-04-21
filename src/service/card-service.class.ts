@@ -66,31 +66,39 @@ export default class CardService {
   }
 
   // 检查出牌是否正确
-  public checkCard(sendCards: Card[]): [boolean, Kind] {
+  public checkCard(sendCards: Card[]): [boolean, Kind, KindCompare] {
     const length = sendCards.length; // 看哪一种
     if (length === 2) { // 两张要一对，即point要一样的
-      return [sendCards[0].pointName == sendCards[1].pointName, Kind.PAIR];
+      return [sendCards[0].pointName == sendCards[1].pointName, Kind.PAIR, {
+        group: sendCards,
+        compare: Math.max(...sendCards.map((c) => c.num))
+      }];
     } else if(length == 5) { // 5张
       const flush = testFlush(sendCards);
       const straight = testStraight(sendCards);
+      const four = testFour(sendCards);
+      const fullhouse = testFullhouse(sendCards);
       if (flush.length > 0 && straight.length > 0) { // 同花顺
-        return [true, Kind.STRAIGHTFLUSH];
+        return [true, Kind.STRAIGHTFLUSH, flush[0]];
       } else if (flush.length > 0) { // 同花
-        return [true, Kind.FLUSH];
+        return [true, Kind.FLUSH, flush[0]];
       } else if (straight.length > 0) { // 顺
-        return [true, Kind.STRAIGHT];
+        return [true, Kind.STRAIGHT, straight[0]];
       } else if (testFour(sendCards).length > 0) { // 四带一
-        return [true, Kind.FOUR];
+        return [true, Kind.FOUR, four[0]];
       } else if (testFullhouse(sendCards).length > 0) { // 三带二
-        return [true, Kind.FULLHOUSE];
+        return [true, Kind.FULLHOUSE, fullhouse[0]];
       } else {
-        return [false, null];
+        return [false, null, null];
       }
     } else if(length == 1) {
       // 单张直接判定
-      return [true, Kind.ONE];
+      return [true, Kind.ONE, {
+        group: sendCards,
+        compare: sendCards[0].num
+      }];
     } else {
-      return [false, null];
+      return [false, null, null];
     }
   }
 
@@ -115,13 +123,13 @@ export default class CardService {
   }
 
   // 获取比上一家大的牌
-  // TODO:顺 < 同花 < 三带二 < 四带一 < 同花顺
-  public getBiggerCards(prevCards: Card[], myCards: Card[]) {
-    const length = prevCards.length; // 看哪一种
+  // 顺 < 同花 < 三带二 < 四带一 < 同花顺
+  public getBiggerCards(lastCards: KindCompare, myCards: Card[]): Card[][] {
+    const length = lastCards.group.length; // 看哪一种
     if (length === 1) { // 单张直接判定
-      return myCards.filter((n) => n > prevCards[0]);
+      return myCards.filter((n) => n.num > lastCards.compare).map((n) => [n]);
     } else if(length == 2) {
-
+        
     }
   }
 
