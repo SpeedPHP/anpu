@@ -5,7 +5,9 @@ import { Suit, Kind, Point, KindCompare } from '../common/types';
 import { testStraight } from "../strategy/straight";
 import { testFlush } from "../strategy/flush";
 import { testFour } from "../strategy/four";
-type SamePointCount = {point: number, count: number};
+import { testFullhouse } from "../strategy/fullhouse";
+import { testPair } from "../strategy/pair";
+
 
 @component
 export default class CardService {
@@ -56,59 +58,44 @@ export default class CardService {
     return cardList.sort();
   }
 
-  // 检查出牌是否正确
-  public checkCardAndKind(sendCards: Card[], myCards: Card[]): [boolean, Kind] {
-    // sendCards 是否在 myCards 里面 
-    sendCards.every((card) => {
-      if (!myCards.includes(card)) {
-        return [false, null];
-      }
+  // 检查是否拥有牌
+  public checkOwn(cards: Card[], myCards: Card[]):boolean {
+    return cards.every((card) => {
+      return myCards.includes(card);
     });
+  }
+
+  // 检查出牌是否正确
+  public checkCard(sendCards: Card[]): [boolean, Kind] {
     const length = sendCards.length; // 看哪一种
     if (length === 2) { // 两张要一对，即point要一样的
       return [sendCards[0].pointName == sendCards[1].pointName, Kind.PAIR];
     } else if(length == 5) { // 5张
-
-
-
-
-     
-    } else {
+      const flush = testFlush(sendCards);
+      const straight = testStraight(sendCards);
+      if (flush.length > 0 && straight.length > 0) { // 同花顺
+        return [true, Kind.STRAIGHTFLUSH];
+      } else if (flush.length > 0) { // 同花
+        return [true, Kind.FLUSH];
+      } else if (straight.length > 0) { // 顺
+        return [true, Kind.STRAIGHT];
+      } else if (testFour(sendCards).length > 0) { // 四带一
+        return [true, Kind.FOUR];
+      } else if (testFullhouse(sendCards).length > 0) { // 三带二
+        return [true, Kind.FULLHOUSE];
+      } else {
+        return [false, null];
+      }
+    } else if(length == 1) {
       // 单张直接判定
       return [true, Kind.ONE];
+    } else {
+      return [false, null];
     }
   }
 
-  // 三带二，返回[{组，比较点数}]
   public testFullhouse(cards: Card[]): KindCompare[] {
-    let groups: Map<number, Card[]> = new Map();
-    for(let card of cards) {
-      if (groups.has(card.point)) {
-        groups.get(card.point).push(card);
-      } else {
-        groups.set(card.point, [card]);
-      }
-    }
-    const result: KindCompare[] = [];
-    const three: KindCompare[] = [];
-    const two: KindCompare[] = [];
-    for(let [point, cards] of groups.entries()) {
-      if(cards.length == 3) {
-        three.push({
-          group: cards,
-          compare: point
-        });
-      } else if (cards.length == 2) {
-        two.push({
-          group: cards,
-          compare: point
-        });
-      }
-    }
-    // 如果没有一对，直接返回
-    if (two.length == 0) {return [];}
-    // 有的话，三张和对的相乘，三张作为比较点数
-
+    return testFullhouse(cards);
   }
 
   public testStraight(cards: Card[]): KindCompare[] {
@@ -121,6 +108,10 @@ export default class CardService {
 
   public testFour(cards: Card[]): KindCompare[] {
     return testFour(cards);
+  }
+
+  public testPair(cards: Card[]): KindCompare[] {
+    return testPair(cards);
   }
 
   // 获取比上一家大的牌

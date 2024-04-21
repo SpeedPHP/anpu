@@ -22,12 +22,10 @@ export default class FrontPage {
   @getMapping("/flush")
   public flush(req, res) {
     const myCards = CardService.numToCard([31,15,19,23,27]);
-    //log(myCards);
     const result = this.cardService.testFlush(myCards);
     const result2 = this.cardService.testStraight(myCards);
     log(JSON.stringify(result));
     log(JSON.stringify(result2));
-
     res.send("Test page running.");
   }
 
@@ -35,9 +33,7 @@ export default class FrontPage {
   public straight(req, res) {
     const myCards = CardService.numToCard([11,15,19,23,27,24,25,29,34,37,41,42,45,51]);
     const result = this.cardService.testStraight(myCards);
-
     log(JSON.stringify(result));
-
     res.send("Test page running.");
   }
 
@@ -45,9 +41,32 @@ export default class FrontPage {
   public four(req, res) {
     const myCards = CardService.numToCard([10,13,14,15,16,19]);
     const result = this.cardService.testFour(myCards);
-
     log(JSON.stringify(result));
+    res.send("Test page running.");
+  }
 
+  @getMapping("/fullhouse")
+  public fullhouse(req, res) {
+    const myCards = CardService.numToCard([10,13,14,15,16,11]);
+    const result = this.cardService.testFullhouse(myCards);
+    log(JSON.stringify(result));
+    res.send("Test page running.");
+  }
+
+  @getMapping("/pair")
+  public pair(req, res) {
+    const myCards = CardService.numToCard([10,13,14,15,16,11]);
+    const result = this.cardService.testPair(myCards);
+    log(JSON.stringify(result));
+    res.send("Test page running.");
+  }
+
+  @getMapping("/check")
+  public check(req, res) {
+    const fiveCards = CardService.numToCard([2,38,42,26,14]);
+    log(fiveCards)
+    const result = this.cardService.checkCard(fiveCards);
+    log(result[0], Kind[result[1]]);
     res.send("Test page running.");
   }
 }

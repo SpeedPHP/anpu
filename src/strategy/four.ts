@@ -13,15 +13,14 @@ export const testFour = (cards: Card[]): KindCompare[] => {
   }
   for(let [point, fourCards] of groups.entries()) {
     if (fourCards.length == 4) {
-      result.push(...handleFour(fourCards, cards));
+      result.push(...handleFour(fourCards, cards, point));
     }
   }
   return result;
 }
 
-// 四个一组进去，和整个数组进去，把余下的元素拼凑成很多组，并且都给比较值
-function handleFour(fourCards: Card[], allCards: Card[]) : KindCompare[] {
-  const compare = fourCards[fourCards.length - 1].num;
+// 四个一组进去，和整个数组进去，把余下的元素拼凑成很多组
+function handleFour(fourCards: Card[], allCards: Card[], compare:number) : KindCompare[] {
   const fourNums = fourCards.map(card => card.num);
   return allCards.filter(card => !fourNums.includes(card.num)).map(card => ({
     group: [...fourCards, card],
