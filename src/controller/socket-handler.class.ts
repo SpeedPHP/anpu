@@ -9,8 +9,8 @@ export default class SocketHandler {
 
   @SocketIo.onConnected
   async connected(socket, next) {
-    //const access = await this.userService.createAccess("zzz");
-    //console.log(access)
+    const access = await this.userService.createAccess("zzz");
+    console.log(access)
     console.log(socket.handshake.auth);
 
   }
