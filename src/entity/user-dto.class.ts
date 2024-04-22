@@ -1,3 +1,7 @@
 export default class UserDto {
-  constructor(public id: number, public name: string){}
+  constructor(
+    public uid: number, 
+    public username: string,
+    public access: string,
+  ){}
 }

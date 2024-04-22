@@ -1,12 +1,17 @@
 import { log, component, getMapping, resource } from "typespeed";
-import CardService from "./service/card-service.class";
-import { Suit, Point, Kind } from './common/types';
+import CardService from "../service/card-service.class";
+import { Suit, Point, Kind } from '../common/types';
 
 @component
 export default class FrontPage {
 
   @resource()
   public cardService: CardService;
+
+  @getMapping("/socket.html")
+  public socket(req, res) {
+    res.render("socket");
+  }
 
   @getMapping("/")
   public index(req, res) {
@@ -40,6 +45,7 @@ export default class FrontPage {
   @getMapping("/four")
   public four(req, res) {
     const myCards = CardService.numToCard([10,13,14,15,16,19]);
+    log(myCards)
     const result = this.cardService.testFour(myCards);
     log(JSON.stringify(result));
     res.send("Test page running.");

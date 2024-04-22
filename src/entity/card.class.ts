@@ -2,17 +2,12 @@ import { Suit } from '../common/types';
 
 
 export default class Card {
-  /**
-   * @param num 当前牌在内存的数
-   * @param suit 花色
-   * @param point 牌面值
-   */
   constructor(
-    public num: number, 
-    public suit: Suit, 
-    public point: number,
-    public suitName: string,
-    public pointName: string,
-    public realPoint: number = 0,
+    public num: number, // 当前牌在内存的数
+    public suit: Suit, // 花色
+    public point: number, // 牌面值
+    public suitName: string, // 花色名
+    public pointName: string, // 牌面名
+    public realPoint: number = 0, // 顺子里计算的比较值
   ){}
 }
