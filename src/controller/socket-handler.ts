@@ -1,5 +1,5 @@
 import { log, component, SocketIo, io, autoware, resource } from "typespeed";
-import UserService from "../service/user-service.class";
+import UserService from "../service/user-service";
 
 @component
 export default class SocketHandler {
@@ -12,6 +12,17 @@ export default class SocketHandler {
     const access = await this.userService.createAccess("zzz");
     console.log(access)
     console.log(socket.handshake.auth);
+    socket.emit("all", "11");
+    setTimeout(() => socket.disconnect(true), 5000);
+  }
 
+  @SocketIo.onDisconnect
+  public disconnet(socket, reason) {
+    log("client disconnect")
+  }
+
+  @SocketIo.onError
+  public error(socket, err) {
+    log("err")
   }
 }

@@ -1,5 +1,5 @@
-import { KindCompare, combinations } from '../common/types';
-import Card from "../entity/card.class";
+import { KindCompare, combinations } from '../common/card-types';
+import Card from "../entity/card";
 
 export const testPair = (cards: Card[]): KindCompare[] => {
   const result: KindCompare[] = [];

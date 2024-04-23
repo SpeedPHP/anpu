@@ -1,4 +1,4 @@
-import UserDto from "../entity/user-dto.class";
+import UserDto from "../entity/user-dto";
 import { component, Redis, autoware, select, resultType, value, param, insert } from "typespeed";
 import { Md5 } from 'ts-md5';
 

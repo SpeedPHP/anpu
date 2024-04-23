@@ -1,6 +1,6 @@
 import { log } from "typespeed";
-import { KindCompare, combinations } from '../common/types';
-import Card from "../entity/card.class";
+import { KindCompare, combinations } from '../common/card-types';
+import Card from "../entity/card";
 
 export const testFlush = (cards: Card[]): KindCompare[] => {
   // 选出所有的同花色，不够5张马上返回

@@ -1,4 +1,4 @@
-import { Suit } from '../common/types';
+import { Suit } from '../common/card-types';
 
 
 export default class Card {

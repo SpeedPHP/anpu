@@ -1,5 +1,5 @@
-import UserService from "../service/user-service.class";
-import LoginReq from "../entity/login-req.class";
+import UserService from "../service/user-service";
+import LoginReq from "../entity/login-req";
 import { log, component, postMapping, reqBody, autoware } from "typespeed";
 
 

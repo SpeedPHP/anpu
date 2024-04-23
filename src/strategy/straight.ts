@@ -1,5 +1,5 @@
-import { KindCompare } from '../common/types';
-import Card from "../entity/card.class";
+import { KindCompare } from '../common/card-types';
+import Card from "../entity/card";
 
 export const testStraight = (cards: Card[]): KindCompare[] => {
   const result: KindCompare[] = [];

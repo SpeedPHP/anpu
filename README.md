@@ -21,18 +21,11 @@ resp = {
 
 ## ws全局约定
 
-### c2s header
+### c2s auth
 ```
 {
   uid:number // 用户id
   access:string // 访问token
-}
-```
-### s2c 实体
-```
-:user = {
-  uid:number
-  username:string
 }
 ```
 
@@ -40,7 +33,7 @@ resp = {
 
 ### 要求重新登录，不认token
 ```
-s2cReLogin = {}
+s2cRelogin = {}
 ```
 
 ### 加入等候
@@ -56,6 +49,8 @@ s2cWaitingStatus = {
 ### 开始
 ```
 s2cStartGame = {
+  uid:number
+  username:string
   myCards:number[] // 我的手牌
   active:boolean // 是否可行动，准备出牌
 
@@ -65,7 +60,8 @@ s2cStartGame = {
   }
 
   leftPlayer: { // 左边玩家
-    :user
+    uid:number
+    username:string
     cardCount: number // 剩余牌数
     active: boolean // 是否在行动，准备出牌
   },
@@ -87,6 +83,8 @@ c2sPlayCard = {
 
 ```
 s2cPlayCard = {
+  uid:number
+  username:string
   myCards:number[] // 我的手牌
   active:boolean // 是否可行动，准备出牌
 
@@ -98,7 +96,8 @@ s2cPlayCard = {
   }
 
   leftPlayer: { // 左边玩家
-    :user
+    uid:number
+    username:string
     cardCount: number // 剩余牌数
     active: boolean // 是否在行动，准备出牌
     winRank: number // 第几名，默认0未赢

@@ -1,7 +1,7 @@
 import { component, log } from "typespeed";
-import PlayerCard from "../entity/player-card.class";
-import Card from "../entity/card.class";
-import { Suit, Kind, Point, KindCompare } from '../common/types';
+
+import Card from "../entity/card";
+import { Suit, Kind, Point, KindCompare } from '../common/card-types';
 import { testStraight } from "../strategy/straight";
 import { testFlush } from "../strategy/flush";
 import { testFour } from "../strategy/four";
@@ -12,18 +12,18 @@ import { testPair } from "../strategy/pair";
 @component
 export default class CardService {
 
-  // 取得4副牌
-  public newCards(): PlayerCard[] {
-    const orderedArray = Array.from({ length: 52 }, (_, index) => index + 1);
-    const shuffledArray = this.shuffleArray(orderedArray);
+  // // 取得4副牌
+  // public newCards(): PlayerCard[] {
+  //   const orderedArray = Array.from({ length: 52 }, (_, index) => index + 1);
+  //   const shuffledArray = this.shuffleArray(orderedArray);
  
-    return [
-      new PlayerCard(shuffledArray.slice(0, 13)),
-      new PlayerCard(shuffledArray.slice(13, 26)),
-      new PlayerCard(shuffledArray.slice(26, 39)),
-      new PlayerCard(shuffledArray.slice(39, 52)),
-    ];
-  }
+  //   return [
+  //     new PlayerCard(shuffledArray.slice(0, 13)),
+  //     new PlayerCard(shuffledArray.slice(13, 26)),
+  //     new PlayerCard(shuffledArray.slice(26, 39)),
+  //     new PlayerCard(shuffledArray.slice(39, 52)),
+  //   ];
+  // }
 
   /*   
   4 = 1,2,3,4

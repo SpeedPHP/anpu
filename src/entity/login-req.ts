@@ -1,5 +1,3 @@
-
-
 export default class LoginReq {
   constructor(
     public inputname: string,
