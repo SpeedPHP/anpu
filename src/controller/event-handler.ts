@@ -10,10 +10,17 @@ export default class EventHandler {
   static s2cPlayCard = "s2cPlayCard";
   static s2cGameOver = "s2cGameOver";
 
+  @autoware
+  userService: UserService;
 
   // 加入等候
   @SocketIo.onEvent("c2sJoinWaiting")
-  public join(socket, message) {
+  public async join(socket) {
+    // 获取当前用户uid
+    const uid = await this.userService.getUid(socket.id);
+    // 当前用户在房间吗？
+    
+
     // socket.join("private-room");
     // io.to("private-room").emit("all", "");
   }

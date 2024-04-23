@@ -43,7 +43,7 @@ c2sJoinWaiting = {}
 ### 等候状态
 ```
 s2cWaitingStatus = {
-  roomUserCount:number // 一起等候人数
+  roomUsers: string[] // 等待中的用户名称列表
 }
 ```
 ### 开始
@@ -119,5 +119,6 @@ s2cGameOver = {
   myWinRank:number // 我的排名
   isBigBoss: boolean // 是否是大地主
   isMiniBoss: boolean // 是否是小地主
+  continue:boolean // 是否继续游戏，或者直接退出到准备阶段
 }
 ```

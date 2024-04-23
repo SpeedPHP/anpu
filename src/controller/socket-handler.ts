@@ -18,7 +18,7 @@ export default class SocketHandler {
 
   @SocketIo.onDisconnect
   public disconnet(socket, reason) {
-    log("client disconnect")
+    // TODO: 用户掉线只能托管了
   }
 
   @SocketIo.onError

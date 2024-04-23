@@ -12,7 +12,23 @@ export default class UserService {
   @autoware
   private redisObj: Redis;
 
-  static USER_TOKEN_PREFIX = "user:token:";
+  static USER_TOKEN = "user:token:";
+  static USER_SOCKET_TO_USER = "user:online:socket:";
+  static USER_USER_TO_SOCKET = "user:online:uid:";
+
+  public async getSocketId(uid: number): Promise<string> {
+    return await this.redisObj.get(UserService.USER_USER_TO_SOCKET + uid);
+  }
+
+  public async getUid(socketId: string): Promise<number> {
+    return parseInt(await this.redisObj.get(UserService.USER_SOCKET_TO_USER + socketId));
+  }
+
+  // 设置UID和SOCKET_ID对应关系
+  public async setSocketIdForUid(uid: number, socketId: string): Promise<void> {
+    await this.redisObj.set(UserService.USER_SOCKET_TO_USER + socketId, uid);
+    await this.redisObj.set(UserService.USER_USER_TO_SOCKET + uid, socketId);
+  }
 
   // 当前注册比较简单，只要没有相同的用户名即可新注册
   public async register(inputName: string, inputPass: string): Promise<boolean> {
@@ -35,13 +51,13 @@ export default class UserService {
   // 创建访问令牌
   public async createAccess(userName: string): Promise<string> {
     const access = Md5.hashStr(userName + this.secret + new Date().getTime());
-    await this.redisObj.set(UserService.USER_TOKEN_PREFIX + userName, access);
+    await this.redisObj.set(UserService.USER_TOKEN + userName, access);
     return access;
   }
 
   // 检查Token是否正确
   public async checkAccess(userName: string, access: string): Promise<boolean> {
-    const token = await this.redisObj.get(UserService.USER_TOKEN_PREFIX + userName);
+    const token = await this.redisObj.get(UserService.USER_TOKEN + userName);
     return token !== null && token === access;
   }
 

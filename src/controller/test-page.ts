@@ -1,13 +1,17 @@
-import { log, component, getMapping, resource } from "typespeed";
+import { log, component, getMapping, resource, reqQuery, autoware } from "typespeed";
 import CardService from "../service/card-service";
 import { Suit, Point, Kind } from '../common/card-types';
 import {Ready,EventPlayCard,Player} from '../common/event-types';
+import RoomService from "../service/room-service";
 
 @component
 export default class FrontPage {
 
-  @resource()
+  @autoware
   public cardService: CardService;
+
+  @autoware
+  public roomService: RoomService;
 
   @getMapping("/socket.html")
   public socket(req, res) {
@@ -25,45 +29,14 @@ export default class FrontPage {
     res.send("Front page running.");
   }
 
-  @getMapping("/resp")
-  public resp(req, res) {
-    const play: Player = {
-      uid : 0,
-      username: "test",
-      cardCount: 4,
-      active: false,
-      winRank: 0,
-      isBigBoss: false, // 是否是大地主
-      isMiniBoss: false, // 是否是小地主
-      isPrevious: false, // 是否是上家
-      isAllPassed: false, // 是否所有玩家都pass了，即傍风
-    
-          /** 以下是非显示的属性 */
-      leftPlayerUid: 199, // 上家玩家uid
-      rightPlayerUid: 122, // 下家玩家uid
+  @getMapping("/room")
+  public room(@reqQuery uid: number) {
+    const player: Player = {
+      uid: uid,
+      username: "hello",
     }
-    const eventPlayCard: EventPlayCard = {
-      uid: 0,
-      username: "test",
-      myCards: [1,2,3],
-      active: false,
-    
-      ready: {
-        previousCard: [1,2,3],
-        availableCards: [
-          [1,2,3],
-          [1,2,3],
-          [1,2,3],
-        ],
-        enablePass: false,
-        isAllPassed: false
-      } as Ready,
-    
-      leftPlayer: play,
-      rightPlayer: play,
-      upperPlayer: play
-    }
-    return eventPlayCard;
+    this.roomService.getWaitingRoomAndJoin(player);
+    return "JOIN";
   }
 
   @getMapping("/flush")
