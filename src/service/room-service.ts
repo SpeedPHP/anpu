@@ -22,6 +22,12 @@ export default class RoomService {
     return playerStrings.map(playerString => JSON.parse(playerString));
   }
 
+  // 更新房间内的玩家！
+  public async updateRoomPlayers(roomId: string, players: Player[]) {
+    await this.redisObj.del(RoomService.ROOM_PLAYERS + roomId);
+    await this.redisObj.sadd(RoomService.ROOM_PLAYERS + roomId, ...players.map(player => JSON.stringify(player)));
+  }
+
   // 加入一个等待中房间，如果就近一个等待房间已经满员，那么开启下一个等待房间并加入
   // 返回当前房间的id
   public async getWaitingRoomAndJoin(player: Player): Promise<string> {

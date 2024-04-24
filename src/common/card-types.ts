@@ -35,6 +35,14 @@ export enum Kind {
 // {组，比较点数}
 export type KindCompare = { group: Card[], compare: number };
 
+// 打印牌
+export function printCards(cards: Card[]){
+  cards.sort((a, b) => a.num - b.num);
+  for (let i = 0; i < cards.length; i++) {
+    console.log(cards[i].suitName + cards[i].pointName);
+  }
+}
+
 
 // 获取组合
 export function combinations<T>(items: T[], k: number): T[][] {

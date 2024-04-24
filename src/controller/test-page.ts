@@ -1,8 +1,9 @@
 import { log, component, getMapping, resource, reqQuery, autoware } from "typespeed";
 import CardService from "../service/card-service";
-import { Suit, Point, Kind } from '../common/card-types';
+import { Suit, printCards, Kind } from '../common/card-types';
 import {Ready,EventPlayCard,Player} from '../common/event-types';
 import RoomService from "../service/room-service";
+import GameService from "../service/game-service";
 
 @component
 export default class FrontPage {
@@ -12,6 +13,9 @@ export default class FrontPage {
 
   @autoware
   public roomService: RoomService;
+
+  @autoware
+  public gameService: GameService;
 
   @getMapping("/socket.html")
   public socket(req, res) {
@@ -37,6 +41,29 @@ export default class FrontPage {
     }
     this.roomService.getWaitingRoomAndJoin(player);
     return "JOIN";
+  }
+
+  @getMapping("/sit")
+  public sit(@reqQuery uid: number) {
+    const players = [
+      this.gameService.createPlayer(1, "test1", "test"),
+      this.gameService.createPlayer(2, "test2", "test"),
+      this.gameService.createPlayer(3, "test3", "test"),
+      this.gameService.createPlayer(4, "test4", "test"),];
+    const newPlayers = this.gameService.playersSitDown(players);
+    log(newPlayers);
+    return "SIT";
+  }
+
+  @getMapping("/checkFour")
+  public checkFour() {
+    const cards = this.cardService.newCards();
+    for(let i = 0; i < 4; i++) {
+      printCards(cards[i]);
+      const result:number[][] = this.cardService.availableCardsByFirst(cards[i]);
+      log(result);
+    }
+    return "FOUR";
   }
 
   @getMapping("/flush")

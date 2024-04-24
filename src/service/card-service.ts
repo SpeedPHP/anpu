@@ -12,18 +12,22 @@ import { testPair } from "../strategy/pair";
 @component
 export default class CardService {
 
-  // // 取得4副牌
-  // public newCards(): PlayerCard[] {
-  //   const orderedArray = Array.from({ length: 52 }, (_, index) => index + 1);
-  //   const shuffledArray = this.shuffleArray(orderedArray);
+  static FIRST_CARD_NUM = 1;
+  static BIG_BOSS_CARD_NUM = 52;
+  static MINI_BOSS_CARD_NUM = 44;
+
+  // 取得4副牌
+  public newCards(): Card[][] {
+    const orderedArray = Array.from({ length: 52 }, (_, index) => index + 1);
+    const shuffledArray = this.shuffleArray(orderedArray);
  
-  //   return [
-  //     new PlayerCard(shuffledArray.slice(0, 13)),
-  //     new PlayerCard(shuffledArray.slice(13, 26)),
-  //     new PlayerCard(shuffledArray.slice(26, 39)),
-  //     new PlayerCard(shuffledArray.slice(39, 52)),
-  //   ];
-  // }
+    return [
+      CardService.numToCard(shuffledArray.slice(0, 13)),
+      CardService.numToCard(shuffledArray.slice(13, 26)),
+      CardService.numToCard(shuffledArray.slice(26, 39)),
+      CardService.numToCard(shuffledArray.slice(39, 52)),
+    ];
+  }
 
   /*   
   4 = 1,2,3,4
@@ -41,7 +45,7 @@ export default class CardService {
   3 = 49,50,51,52 
   */
   // 号码转牌
-  public static numToCard(num: number[]) {
+  public static numToCard(num: number[]): Card[] {
     num = num.sort();
     return num.map((n) => {
       const point = Math.floor((n-1) / 4); // 从1开始所以要减一，逻辑在Point，3大4小
@@ -51,12 +55,58 @@ export default class CardService {
   }
 
   // 牌转号码
-  public static cardToNum(cards: Card[]) {
+  public static cardToNum(cards: Card[]): number[] {
     const cardList = cards.map((c) => {
       return c.num;
     });
     return cardList.sort();
   }
+
+  // 出牌是否地主
+  // isBigBoss取第0值，isMiniBoss取1值
+  public isBoss(cards: Card[]): [boolean, boolean] {
+    let isBigBoss = false;
+    let isMiniBoss = false;
+    for(let card of cards) {
+      if(card.num == CardService.BIG_BOSS_CARD_NUM){
+        isBigBoss = true;
+      } else if(card.num == CardService.MINI_BOSS_CARD_NUM){
+        isMiniBoss = true;
+      }
+    }
+    return [isBigBoss, isMiniBoss];
+  }
+
+  // 检查是否拥有第一张
+  public hasFirstCard(cards: Card[]): boolean {
+    for(let card of cards) {
+      if(card.num == CardService.FIRST_CARD_NUM){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // 第一张牌，可以出的组合，一定要出关联4的
+  public availableCardsByFirst(cards: Card[]): number[][] {
+    const result: number[][] = [[CardService.FIRST_CARD_NUM]]; // 首先可以出单张
+    result.push(...this.testGroupWithFirst(cards, this.testPair));
+    result.push(...this.testGroupWithFirst(cards, this.testFullhouse));
+    result.push(...this.testGroupWithFirst(cards, this.testFour));
+    result.push(...this.testGroupWithFirst(cards, this.testStraight));
+    result.push(...this.testGroupWithFirst(cards, this.testFlush));
+    return result;
+  }
+
+  // // 如果全大了，可以出的组合
+  // public availableCardsByPassAll(cards: Card[]): number[][] {
+
+  // }
+
+  // // 上家出了牌，可以出的组合
+  // public availableCardsByCompare(cards: Card[], compareCards: Card[]): number[][] {
+   
+  // }
 
   // 检查是否拥有牌
   public checkOwn(cards: Card[], myCards: Card[]):boolean {
@@ -102,37 +152,22 @@ export default class CardService {
     }
   }
 
-  public testFullhouse(cards: Card[]): KindCompare[] {
-    return testFullhouse(cards);
-  }
+  public testFullhouse(cards: Card[]): KindCompare[] {return testFullhouse(cards);}
+  public testStraight(cards: Card[]): KindCompare[] {return testStraight(cards);}
+  public testFlush(cards: Card[]): KindCompare[] {return testFlush(cards);}
+  public testFour(cards: Card[]): KindCompare[] {return testFour(cards);}
+  public testPair(cards: Card[]): KindCompare[] {return testPair(cards);}
 
-  public testStraight(cards: Card[]): KindCompare[] {
-    return testStraight(cards);
+  // 找出有哪些组合，对里哪些是带num=1的
+  private testGroupWithFirst(cards: Card[], handler: Function): number[][] {
+    const result: number[][] = [];
+    handler(cards).filter((pair) => {
+      return pair.group.some((card) => {
+        return card.num == CardService.FIRST_CARD_NUM;
+      });
+    }).forEach(p => result.push(CardService.cardToNum(p.group)));
+    return result;
   }
-
-  public testFlush(cards: Card[]): KindCompare[] {
-    return testFlush(cards);
-  }
-
-  public testFour(cards: Card[]): KindCompare[] {
-    return testFour(cards);
-  }
-
-  public testPair(cards: Card[]): KindCompare[] {
-    return testPair(cards);
-  }
-
-  // 获取比上一家大的牌
-  // 顺 < 同花 < 三带二 < 四带一 < 同花顺
-  public getBiggerCards(lastCards: KindCompare, myCards: Card[]): Card[][] {
-    const length = lastCards.group.length; // 看哪一种
-    if (length === 1) { // 单张直接判定
-      return myCards.filter((n) => n.num > lastCards.compare).map((n) => [n]);
-    } else if(length == 2) {
-        
-    }
-  }
-
  
   // Fisher-Yates洗牌算法打乱数组
   private shuffleArray(array: number[]): number[] {

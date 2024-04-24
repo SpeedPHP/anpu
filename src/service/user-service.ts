@@ -62,14 +62,23 @@ export default class UserService {
   }
 
   // 找出当前用户资料
-  public async findUser(userName: string): Promise<UserDto> {
-    const user = await this.findUserByName(userName);
+  public async findUser(findBy: string | number): Promise<UserDto> {
+    let user;
+    if(typeof findBy === "number"){
+      user = await this.findUserById(findBy);
+    }else{
+      user = await this.findUserByName(findBy);
+    }
     if (!user || !user[0]) {
       return null;
     } else {
       return user[0];
     }
   }
+
+  @resultType(UserDto)
+  @select("select * from `user` where uid = #{uid}")
+  private async findUserById(@param("uid") uid: number): Promise<[UserDto]> { return; }
 
   @resultType(UserDto)
   @select("select * from `user` where username = #{userName}")

@@ -46,30 +46,12 @@ s2cWaitingStatus = {
   roomUsers: string[] // 等待中的用户名称列表
 }
 ```
-### 开始
-```
-s2cStartGame = {
-  uid:number
-  username:string
-  myCards:number[] // 我的手牌
-  active:boolean // 是否可行动，准备出牌
 
-  ready: { // 可以行动，准备决策的内容
-    availableCards: number[][] // 可用的牌组
-    enablePass: boolean // 是否可以过牌：开始时不能pass
-  }
+### 开始游戏
 
-  leftPlayer: { // 左边玩家
-    uid:number
-    username:string
-    cardCount: number // 剩余牌数
-    active: boolean // 是否在行动，准备出牌
-  },
-  rightPlayer = leftPlayer // 右边玩家
-  upperPlayer = leftPlayer // 上方玩家
-}
-```
-### 出牌
+s2cStartGame = s2cPlayCard // 内容相同，只是事件名不同
+
+### 玩家游戏端出牌
 
 ```
 c2sPlayCard = {
@@ -79,7 +61,7 @@ c2sPlayCard = {
 }
 ```
 
-### 游戏中收到响应
+### 服务端给单个玩家下发
 
 ```
 s2cPlayCard = {

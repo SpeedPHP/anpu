@@ -14,6 +14,7 @@ export default class SocketHandler {
     console.log(socket.handshake.auth);
     socket.emit("all", "11");
     setTimeout(() => socket.disconnect(true), 5000);
+    // TODO:用户连上后，取消托管
   }
 
   @SocketIo.onDisconnect
