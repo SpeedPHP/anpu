@@ -33,7 +33,7 @@ export const testFullhouse = (cards: Card[]): KindCompare[] => {
   // 组合三张和一对，但它们的牌不能相同
   for(let three of threeGroup) {
     for(let two of twoGroup) {
-      if (three[0].point != two[0].num) {
+      if (three[0].point != two[0].point) {
         result.push({
           group: three.concat(two),
           compare: three[2].num,

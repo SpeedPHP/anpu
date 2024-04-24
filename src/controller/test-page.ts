@@ -1,4 +1,4 @@
-import { log, component, getMapping, resource, reqQuery, autoware } from "typespeed";
+import { log, component, getMapping, resource, reqQuery, autoware, logx } from "typespeed";
 import CardService from "../service/card-service";
 import { Suit, printCards, Kind } from '../common/card-types';
 import {Ready,EventPlayCard,Player} from '../common/event-types';
@@ -44,7 +44,7 @@ export default class FrontPage {
   }
 
   @getMapping("/sit")
-  public sit(@reqQuery uid: number) {
+  public sit() {
     const players = [
       this.gameService.createPlayer(1, "test1", "test"),
       this.gameService.createPlayer(2, "test2", "test"),
@@ -55,6 +55,18 @@ export default class FrontPage {
     return "SIT";
   }
 
+  @getMapping("/start")
+  public start() {
+    const players = [
+      this.gameService.createPlayer(1, "test1", "test1"),
+      this.gameService.createPlayer(2, "test2", "test2"),
+      this.gameService.createPlayer(3, "test3", "test3"),
+      this.gameService.createPlayer(4, "test4", "test4"),];
+    const newPlayers = this.gameService.gameStart(players);
+    logx(Object.fromEntries(newPlayers[1]));
+    return "start";
+  }
+
   @getMapping("/checkFour")
   public checkFour() {
     const cards = this.cardService.newCards();
@@ -62,6 +74,22 @@ export default class FrontPage {
       printCards(cards[i]);
       const result:number[][] = this.cardService.availableCardsByFirst(cards[i]);
       log(result);
+    }
+    return "FOUR";
+  }
+
+  @getMapping("/checkAll")
+  public checkAll() {
+    const cards = this.cardService.newCards();
+    for(let i = 0; i < 4; i++) {
+      printCards(cards[i]);
+      log("")
+      let count = 0;
+      this.cardService.availableCardsByPassAll(cards[i]).forEach(v => {
+        printCards(CardService.numToCard(v));log("")
+        count++;
+      })
+      log(count);
     }
     return "FOUR";
   }

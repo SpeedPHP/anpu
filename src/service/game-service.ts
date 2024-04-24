@@ -1,5 +1,5 @@
 import { component, autoware, log } from "typespeed";
-import { Player } from "../common/event-types";
+import { Ready, Player, EventStartGame, deepHideCopy } from "../common/event-types";
 import Card from "../entity/card";
 import UserService from "../service/user-service";
 import RoomService from "../service/room-service";
@@ -17,8 +17,9 @@ export default class GameService {
   @autoware
   cardService: CardService;
 
-  public gameStart(players: Player[]) {
-    // 满员，开始游戏，落座
+  public gameStart(players: Player[]): [Player[], Map<string, EventStartGame>] {
+    const resultMap = new Map<string, EventStartGame>(); // socketid => event
+    // 落座
     this.playersSitDown(players);
     // 分牌，顺便看看谁是第一个
     const cards = this.cardService.newCards();
@@ -31,6 +32,30 @@ export default class GameService {
         players[i].hasDiamondFour = true;
       }
     }
+    log(players.length)
+    for(let player of players) {
+      const event: EventStartGame = {
+        uid:player.uid,
+        username:player.username,
+        myCards:CardService.cardToNum(player._cards), // 我的手牌
+        active:player.active, // 是否可行动，准备出牌
+        
+        ready: {
+          previousCard: [], // 上家出牌
+          availableCards: player.active ? this.cardService.availableCardsByPassAll(player._cards) : [], // 可用的牌组
+          enablePass: false, // 是否可以过牌：开始时和傍风时不能pass
+          isAllPassed: true, // 是否所有玩家都pass了，即傍风
+        }, // 行动，准备决策的内容
+        
+        leftPlayer: deepHideCopy(players.find(p => p.uid === player._leftPlayerUid)), // 左边玩家
+        rightPlayer: deepHideCopy(players.find(p => p.uid === player._rightPlayerUid)), // 右边玩家
+        upperPlayer: deepHideCopy(players.find(p => p.uid !== player._rightPlayerUid
+          && p.uid !== player._leftPlayerUid && p.uid !== player.uid
+        )) // 上方玩家
+      }
+      resultMap.set(player._socketId, event);
+    }
+    return [players, resultMap];
   }
 
   // card play

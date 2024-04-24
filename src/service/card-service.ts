@@ -7,6 +7,7 @@ import { testFlush } from "../strategy/flush";
 import { testFour } from "../strategy/four";
 import { testFullhouse } from "../strategy/fullhouse";
 import { testPair } from "../strategy/pair";
+import { testStraightFlush } from "../strategy/straight-flush";
 
 
 @component
@@ -20,7 +21,7 @@ export default class CardService {
   public newCards(): Card[][] {
     const orderedArray = Array.from({ length: 52 }, (_, index) => index + 1);
     const shuffledArray = this.shuffleArray(orderedArray);
- 
+
     return [
       CardService.numToCard(shuffledArray.slice(0, 13)),
       CardService.numToCard(shuffledArray.slice(13, 26)),
@@ -48,7 +49,7 @@ export default class CardService {
   public static numToCard(num: number[]): Card[] {
     num = num.sort();
     return num.map((n) => {
-      const point = Math.floor((n-1) / 4); // 从1开始所以要减一，逻辑在Point，3大4小
+      const point = Math.floor((n - 1) / 4); // 从1开始所以要减一，逻辑在Point，3大4小
       const suit = n % 4; // 余数是花色，余1是方块，逻辑在enum Suit
       return new Card(n, suit, point, Suit[suit], Point[point]);
     });
@@ -67,10 +68,10 @@ export default class CardService {
   public isBoss(cards: Card[]): [boolean, boolean] {
     let isBigBoss = false;
     let isMiniBoss = false;
-    for(let card of cards) {
-      if(card.num == CardService.BIG_BOSS_CARD_NUM){
+    for (let card of cards) {
+      if (card.num == CardService.BIG_BOSS_CARD_NUM) {
         isBigBoss = true;
-      } else if(card.num == CardService.MINI_BOSS_CARD_NUM){
+      } else if (card.num == CardService.MINI_BOSS_CARD_NUM) {
         isMiniBoss = true;
       }
     }
@@ -79,8 +80,8 @@ export default class CardService {
 
   // 检查是否拥有第一张
   public hasFirstCard(cards: Card[]): boolean {
-    for(let card of cards) {
-      if(card.num == CardService.FIRST_CARD_NUM){
+    for (let card of cards) {
+      if (card.num == CardService.FIRST_CARD_NUM) {
         return true;
       }
     }
@@ -98,18 +99,48 @@ export default class CardService {
     return result;
   }
 
-  // // 如果全大了，可以出的组合
-  // public availableCardsByPassAll(cards: Card[]): number[][] {
+  // 如果全大了，可以出的组合
+  public availableCardsByPassAll(cards: Card[]): number[][] {
+    const result: number[][] = [...CardService.cardToNum(cards).map(v => [v])]; // 单张都可以出
+    this.testPair(cards).forEach(v => result.push(CardService.cardToNum(v.group)));
+    this.testFullhouse(cards).forEach(v => result.push(CardService.cardToNum(v.group)));
+    this.testFour(cards).forEach(v => result.push(CardService.cardToNum(v.group)));
+    this.testStraight(cards).forEach(v => result.push(CardService.cardToNum(v.group)));
+    this.testFlush(cards).forEach(v => result.push(CardService.cardToNum(v.group)));
+    return result;
+  }
 
-  // }
-
-  // // 上家出了牌，可以出的组合
-  // public availableCardsByCompare(cards: Card[], compareCards: Card[]): number[][] {
-   
-  // }
+  // 上家出了牌，可以出的组合；上家的牌需要经过checkOwn和checkCard再输入
+  public availableCardsByCompare(cards: Card[], aCardKind:Kind, aCardCompare: KindCompare): number[][] {
+    if (aCardKind == Kind.ONE) {
+      return CardService.cardToNum(cards.filter(c => c.num > aCardCompare.compare)).map(v => [v]);
+    } else if(aCardKind == Kind.PAIR){
+      return this.testPair(cards).filter(v => v.compare > aCardCompare.compare).map(v => CardService.cardToNum(v.group));
+    } else if (aCardKind == Kind.FOUR) {
+      return this.testFour(cards).filter(v => v.compare > aCardCompare.compare).map(v => CardService.cardToNum(v.group));
+    } else if (aCardKind == Kind.FULLHOUSE) {
+      return this.testFullhouse(cards).filter(v => v.compare > aCardCompare.compare).map(v => CardService.cardToNum(v.group));
+    } else if (aCardKind == Kind.STRAIGHTFLUSH) {
+      // 同花顺是先比花，再比顺
+      const [compareCard] = CardService.numToCard([aCardCompare.compare]);
+      return this.testStraightFlush(cards).filter(v => {
+        let [ownCard] = CardService.numToCard([v.compare]);
+        if(ownCard.suit > compareCard.suit) return true;
+        if(ownCard.suit == compareCard.suit) {
+          return ownCard.num > compareCard.num;
+        }
+      }).map(v => CardService.cardToNum(v.group));
+    } else if (aCardKind == Kind.STRAIGHT) {
+      return this.testStraight(cards).filter(v => v.compare > aCardCompare.compare).map(v => CardService.cardToNum(v.group));
+    } else if (aCardKind == Kind.FLUSH) {
+      return this.testFlush(cards).filter(v => v.compare > aCardCompare.compare).map(v => CardService.cardToNum(v.group));
+    } else {
+      return [];
+    }
+  }
 
   // 检查是否拥有牌
-  public checkOwn(cards: Card[], myCards: Card[]):boolean {
+  public checkOwn(cards: Card[], myCards: Card[]): boolean {
     return cards.every((card) => {
       return myCards.includes(card);
     });
@@ -123,13 +154,13 @@ export default class CardService {
         group: sendCards,
         compare: Math.max(...sendCards.map((c) => c.num))
       }];
-    } else if(length == 5) { // 5张
+    } else if (length == 5) { // 5张
       const flush = testFlush(sendCards);
       const straight = testStraight(sendCards);
       const four = testFour(sendCards);
       const fullhouse = testFullhouse(sendCards);
       if (flush.length > 0 && straight.length > 0) { // 同花顺
-        return [true, Kind.STRAIGHTFLUSH, flush[0]];
+        return [true, Kind.STRAIGHTFLUSH, straight[0]];
       } else if (flush.length > 0) { // 同花
         return [true, Kind.FLUSH, flush[0]];
       } else if (straight.length > 0) { // 顺
@@ -141,7 +172,7 @@ export default class CardService {
       } else {
         return [false, null, null];
       }
-    } else if(length == 1) {
+    } else if (length == 1) {
       // 单张直接判定
       return [true, Kind.ONE, {
         group: sendCards,
@@ -152,11 +183,12 @@ export default class CardService {
     }
   }
 
-  public testFullhouse(cards: Card[]): KindCompare[] {return testFullhouse(cards);}
-  public testStraight(cards: Card[]): KindCompare[] {return testStraight(cards);}
-  public testFlush(cards: Card[]): KindCompare[] {return testFlush(cards);}
-  public testFour(cards: Card[]): KindCompare[] {return testFour(cards);}
-  public testPair(cards: Card[]): KindCompare[] {return testPair(cards);}
+  public testFullhouse(cards: Card[]): KindCompare[] { return testFullhouse(cards); }
+  public testStraight(cards: Card[]): KindCompare[] { return testStraight(cards); }
+  public testFlush(cards: Card[]): KindCompare[] { return testFlush(cards); }
+  public testFour(cards: Card[]): KindCompare[] { return testFour(cards); }
+  public testPair(cards: Card[]): KindCompare[] { return testPair(cards); }
+  public testStraightFlush(cards: Card[]): KindCompare[] { return testStraightFlush(cards); }
 
   // 找出有哪些组合，对里哪些是带num=1的
   private testGroupWithFirst(cards: Card[], handler: Function): number[][] {
@@ -168,7 +200,7 @@ export default class CardService {
     }).forEach(p => result.push(CardService.cardToNum(p.group)));
     return result;
   }
- 
+
   // Fisher-Yates洗牌算法打乱数组
   private shuffleArray(array: number[]): number[] {
     for (let i = array.length - 1; i > 0; i--) {

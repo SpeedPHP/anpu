@@ -5,6 +5,14 @@ export type EventWaitingStatus = {
 }
 
 export type EventRelogin = {}
+// 结束结算
+export type EventGameOver = {
+  myCards:number[], // 我的手牌
+  myWinRank:number, // 我的排名
+  isBigBoss: boolean, // 是否是大地主
+  isMiniBoss: boolean, // 是否是小地主
+  continue:boolean // 是否继续游戏，或者直接退出到准备阶段
+}
 
 export type EventStartGame = {
   uid:number,
@@ -30,14 +38,6 @@ export type EventPlayCard = {
   leftPlayer: Player; // 左边玩家
   rightPlayer: Player; // 右边玩家
   upperPlayer: Player; // 上方玩家
-}
-// 结束结算
-export type EventGameOver = {
-  myCards:number[], // 我的手牌
-  myWinRank:number, // 我的排名
-  isBigBoss: boolean, // 是否是大地主
-  isMiniBoss: boolean, // 是否是小地主
-  continue:boolean // 是否继续游戏，或者直接退出到准备阶段
 }
 
 export type Ready = {
@@ -65,4 +65,33 @@ export type Player = {
   _socketId?: string, // 玩家socketId
   _cards?: Card[], // 玩家手牌
   _auto?: boolean, // 是否托管
+}
+
+
+// 复制对象，但去除下划线的属性
+export function deepHideCopy<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as T;
+  }
+
+  if (obj instanceof RegExp) {
+    return new RegExp(obj) as T;
+  }
+
+  if (obj instanceof Map) {
+    return new Map(Array.from(obj.entries()).filter(([k]) => !k.startsWith('_')).map(([k, v]) => [deepHideCopy(k), deepHideCopy(v)])) as T;
+  }
+
+  // 处理普通对象和数组
+  const clone: any = Array.isArray(obj) ? [] : {};
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key) && !key.startsWith('_')) {
+      clone[key] = deepHideCopy(obj[key]);
+    }
+  }
+  return clone;
 }
