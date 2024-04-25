@@ -47,7 +47,7 @@ export default class CardService {
   */
   // 号码转牌
   public static numToCard(num: number[]): Card[] {
-    num = num.sort();
+    num = num.sort((a, b) => a - b);
     return num.map((n) => {
       const point = Math.floor((n - 1) / 4); // 从1开始所以要减一，逻辑在Point，3大4小
       const suit = n % 4; // 余数是花色，余1是方块，逻辑在enum Suit
@@ -60,7 +60,7 @@ export default class CardService {
     const cardList = cards.map((c) => {
       return c.num;
     });
-    return cardList.sort();
+    return cardList.sort((a, b) => a - b);
   }
 
   // 出牌是否地主

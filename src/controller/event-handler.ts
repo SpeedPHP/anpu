@@ -37,10 +37,10 @@ export default class EventHandler {
     if(!roomId) {
       // 不在房间的话，创建用户并加入房间
       const userDto = await this.userService.findUser(uid);
-      const player = this.gameService.createPlayer(uid, userDto.username, socket.id);
-      roomId = await this.roomService.getWaitingRoomAndJoin(player);
-      socket.join(roomId);
+      const newPlayer = this.gameService.createPlayer(uid, userDto.username, socket.id);
+      roomId = await this.roomService.getWaitingRoomAndJoin(newPlayer);
     }
+    socket.join(roomId);
     // 房间里的所有玩家读出来
     const players: Player[] = await this.roomService.getRoomPlayers(roomId);
     if(players.length != 4){
@@ -54,7 +54,7 @@ export default class EventHandler {
         if(msg.active) { // 当前可以出牌人是散角4
           this.roomService.setNextActiveUid(roomId, msg.uid);
         }
-        io.to(socketId).emit(EventHandler.s2cPlayCard, msg);
+        io.to(socketId).emit(EventHandler.s2cStartGame, msg);
       }
       // 保存房间玩家
       this.roomService.updateRoomPlayers(roomId, storePlayers);
@@ -75,8 +75,7 @@ export default class EventHandler {
       // 不是当前可出牌者，返回错误
       throw new NotActiveUserException(`${opUid} is not active user, {$player}, {$message}`);
     }
-
-    const sentMsg = <SentEvent>JSON.parse(message);
+    const sentMsg = message as SentEvent;
     const players: Player[] = await this.roomService.getRoomPlayers(roomId);
     const nextPlayer = this.gameService.findNextNonWinPlayer(players, players.find((p) => p.uid == opUid));
 
@@ -94,6 +93,8 @@ export default class EventHandler {
         [storePlayers, respMap] = this.gameService.playCompare(players, nextPlayer.uid, sentCardsData);
       }
     } else {
+      // TODO 检查是否赢了
+      log(sentCardsData);
       // 比较牌是这次出的
       [storePlayers, respMap] = this.gameService.playCompare(players, nextPlayer.uid, sentCardsData);
     }

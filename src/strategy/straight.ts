@@ -81,7 +81,7 @@ function changeStraight(cards: Card[]) {
       cards[i].realPoint = cards[i].point - 9;
     }
     if([41,42,43,44].includes(cards[i].num)) { // A
-      const tmpCard = new Card(cards[i].num + 1, cards[i].suit, cards[i].point, cards[i].suitName, cards[i].pointName, cards[i].point - 9);
+      const tmpCard = new Card(cards[i].num, cards[i].suit, cards[i].point, cards[i].suitName, cards[i].pointName, cards[i].point - 9);
       addA.push(tmpCard);
     }
   }

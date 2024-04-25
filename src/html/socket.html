@@ -3,28 +3,28 @@
 <head>
   <title>Socket Test</title>
   <script src="/socket.io.min-4.7.1.js"></script>
-  <script>
-    var socket = io('http://localhost:8081', {
-      auth: { "user":"zzz2" },
-    });
-    socket.on('connect', function () {
-      console.log('connected');
-    });
-    socket.on('disconnect', function () {
-      console.log('disconnected');
-    });
-    socket.on('all', function (data) {
-      console.log(data);
-    });
-  </script>
+  <script src="/num.to.card.js"></script>
+  <script src="/jquery.min.js"></script>
+  <script src="/action.js"></script>
 </head>
 
 <body>
-  <button onclick="socket.emit('say', 'I say some thing')">TestSay</button>
-  <button onclick="socket.emit('join', 'I want to join the room')">Join</button>
-  <button onclick="socket.emit('say-inroom', 'say some in room')">InRoom</button>
-  <button onclick="socket.emit('test-error', 'this is a error')">Test Error</button>
-  <button onclick="socket.close()">Close</button>
+  <div style="display: flex">
+    <div
+      style="width: 40%; height: 100vh; border-right-color: darkgray; border-right-style: dashed; margin-right: 15px">
+      <p>
+        <label>用户名</label> <input type="text" id="username" /><br>
+        <label>密码</label> <input type="text" id="password" /><br>
+        <button onclick="login()">登录</button>
+      </p>
+      <p>
+        <input type="text" id="playcard" />
+        <button onclick="play()">出牌</button>&nbsp;<button onclick="pass()">大</button>
+      </p>
+
+    </div>
+    <div style="width: 60%; word-wrap: break-word" id="responseStr"></div>
+  </div>
 </body>
 
 </html>

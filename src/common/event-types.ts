@@ -12,7 +12,6 @@ export type SentCardsData = {
 
 // 出牌的数据
 export type SentEvent = {
-  remainingCards:number[], // 剩余牌
   sentCards:number[], // 出牌
   pass:boolean, // 是否pass
 }

@@ -68,7 +68,7 @@ export default class RoomService {
     return waitingRoomId;
   }
 
-  // TODO 玩家离开后，托管到结束，然后销毁房间
+  // TODO 玩家离开后，托管到结束，然后销毁房间；注意删除所有人的对应关系
   public endRoom(roomId: string) {
     
   }

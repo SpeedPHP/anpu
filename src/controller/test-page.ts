@@ -4,6 +4,7 @@ import { Suit, printCards, Kind } from '../common/card-types';
 import {Ready,EventPlayCard,Player} from '../common/event-types';
 import RoomService from "../service/room-service";
 import GameService from "../service/game-service";
+import { get } from "http";
 
 @component
 export default class FrontPage {
@@ -144,5 +145,15 @@ export default class FrontPage {
     const result = this.cardService.checkCard(fiveCards);
     log(result[0], Kind[result[1]]);
     res.send("Test page running.");
+  }
+
+  @getMapping("/numToCards")
+  public numToCards() {
+    let result = "";
+    for(let i = 1; i <= 52; i++) {
+      const [card] = CardService.numToCard([i]);
+      result += `"${card.suitName + card.pointName}",\n`;
+    }
+    return result;
   }
 }
