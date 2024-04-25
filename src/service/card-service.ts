@@ -141,8 +141,9 @@ export default class CardService {
 
   // 检查是否拥有牌
   public checkOwn(cards: Card[], myCards: Card[]): boolean {
+    const cardsNum = cards.map(v => v.num);
     return myCards.every((card) => {
-      return cards.includes(card);
+      return cardsNum.includes(card.num);
     });
   }
 
