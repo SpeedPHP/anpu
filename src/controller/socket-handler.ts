@@ -1,4 +1,4 @@
-import { log, component, SocketIo, io, autoware, resource } from "typespeed";
+import { log, component, SocketIo, io, error, resource } from "typespeed";
 import UserService from "../service/user-service";
 
 @component
@@ -24,6 +24,7 @@ export default class SocketHandler {
 
   @SocketIo.onError
   public error(socket, err) {
-    log("err")
+    error(err);
+    socket.emit("", err.name);
   }
 }

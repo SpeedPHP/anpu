@@ -1,5 +1,5 @@
 import { component, log, autoware, Redis } from "typespeed";
-import { Player } from "../common/event-types";
+import { Player, SentCardsData } from "../common/event-types";
 
 @component
 export default class RoomService {
@@ -10,6 +10,8 @@ export default class RoomService {
   static USER_TO_ROOM_ID = "room:user:";
   static ROOM_WAITING = "room:waiting:";
   static ROOM_PLAYERS = "room:player:";
+  static ROOM_PREVIOUS_ACTIVE_USER = "room:previous_active:";
+  static ROOM_LAST_SENT_DATA = "room:last_sent_data:";
 
   // 获取我所在的房间
   public async findMyRoomId(uid: number): Promise<string> {
@@ -20,6 +22,29 @@ export default class RoomService {
   public async getRoomPlayers(roomId: string): Promise<Player[]> {
     const playerStrings = await this.redisObj.smembers(RoomService.ROOM_PLAYERS + roomId);
     return playerStrings.map(playerString => JSON.parse(playerString));
+  }
+
+  // 设置下一次可出牌的玩家
+  public async setNextActiveUid(roomId: string, uid: number) {
+    await this.redisObj.set(RoomService.ROOM_PREVIOUS_ACTIVE_USER + roomId, uid);
+  }
+
+  // 取可出牌的玩家
+  public async getNextActiveUid(roomId: string): Promise<number> {
+    const uid = await this.redisObj.get(RoomService.ROOM_PREVIOUS_ACTIVE_USER + roomId);
+    return uid ? parseInt(uid) : null;
+  }
+
+  // 设置最后出牌的人和牌
+  public async setRoomLastData(roomId: string, data: SentCardsData): Promise<void> {
+    await this.redisObj.set(RoomService.ROOM_LAST_SENT_DATA + roomId, JSON.stringify(data));
+  }
+
+  // 获取最后出牌的人和牌
+  public async getRoomLastData(roomId: string): Promise<SentCardsData | null> {
+    const data = await this.redisObj.get(RoomService.ROOM_LAST_SENT_DATA + roomId);
+    if (!data) return null;
+    return <SentCardsData> JSON.parse(data);
   }
 
   // 更新房间内的玩家！

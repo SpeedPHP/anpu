@@ -56,7 +56,7 @@ s2cStartGame = s2cPlayCard // 内容相同，只是事件名不同
 ```
 c2sPlayCard = {
   remainingCards:number[] // 剩余牌
-  sendCards:number[] // 出牌
+  sentCards:number[] // 出牌
   pass:boolean // 是否pass
 }
 ```

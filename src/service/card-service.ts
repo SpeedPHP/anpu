@@ -91,11 +91,11 @@ export default class CardService {
   // 第一张牌，可以出的组合，一定要出关联4的
   public availableCardsByFirst(cards: Card[]): number[][] {
     const result: number[][] = [[CardService.FIRST_CARD_NUM]]; // 首先可以出单张
-    result.push(...this.testGroupWithFirst(cards, this.testPair));
-    result.push(...this.testGroupWithFirst(cards, this.testFullhouse));
-    result.push(...this.testGroupWithFirst(cards, this.testFour));
-    result.push(...this.testGroupWithFirst(cards, this.testStraight));
-    result.push(...this.testGroupWithFirst(cards, this.testFlush));
+    result.push(...this.isGroupWithFirst(cards, this.testPair));
+    result.push(...this.isGroupWithFirst(cards, this.testFullhouse));
+    result.push(...this.isGroupWithFirst(cards, this.testFour));
+    result.push(...this.isGroupWithFirst(cards, this.testStraight));
+    result.push(...this.isGroupWithFirst(cards, this.testFlush));
     return result;
   }
 
@@ -191,7 +191,7 @@ export default class CardService {
   public testStraightFlush(cards: Card[]): KindCompare[] { return testStraightFlush(cards); }
 
   // 找出有哪些组合，对里哪些是带num=1的
-  private testGroupWithFirst(cards: Card[], handler: Function): number[][] {
+  private isGroupWithFirst(cards: Card[], handler: Function): number[][] {
     const result: number[][] = [];
     handler(cards).filter((pair) => {
       return pair.group.some((card) => {
