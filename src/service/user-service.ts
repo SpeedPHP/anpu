@@ -30,6 +30,13 @@ export default class UserService {
     await this.redisObj.set(UserService.USER_USER_TO_SOCKET + uid, socketId);
   }
 
+  // 从socketId删除用户ID和SocketId的对应关系
+  public async delSocketIdForUid(socketId: string): Promise<void> {
+    const uid = await this.getUid(socketId);
+    await this.redisObj.del(UserService.USER_SOCKET_TO_USER + socketId);
+    await this.redisObj.del(UserService.USER_USER_TO_SOCKET + uid);
+  }
+
   // 当前注册比较简单，只要没有相同的用户名即可新注册
   public async register(inputName: string, inputPass: string): Promise<boolean> {
     // 开始注册

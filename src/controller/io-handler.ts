@@ -4,8 +4,7 @@ import UserService from "../service/user-service";
 @component
 export default class IoHandler {
 
-  @autoware
-  userService: UserService;
+  @autoware userService: UserService;
 
   @SocketIo.onConnected
   async connected(socket, next) {
@@ -22,18 +21,18 @@ export default class IoHandler {
       next("Not Valid Access!");return;
     }
     await this.userService.setSocketIdForUid(user.uid, socket.id);
-    // TODO:用户连上后，取消托管
+    // TODO:用户连上后，取消托管，如果有房间加回房间
   }
 
   @SocketIo.onDisconnect
-  public disconnet(socket, reason) {
-    // TODO: 用户掉线只能托管了
+  public async disconnet(socket, reason) {
+    // 用户掉线删除socket id的对应关系，然后让程序自动托管
+    await this.userService.delSocketIdForUid(socket.id);
   }
 
   @SocketIo.onError
   public error(socket, err) {
     error(err);
-    socket.emit("", err.name);
-    //setTimeout(() => socket.disconnect(true), 1000);
+    setTimeout(() => socket.disconnect(true), 1000);
   }
 }

@@ -74,7 +74,7 @@ export type Player = {
   /** 以下是非显示的属性 */
   _leftPlayerUid?: number, // 上家玩家uid
   _rightPlayerUid?: number, // 下家玩家uid
-  _socketId?: string, // 玩家socketId
+  //_socketId?: string, // 玩家socketId
   _cards?: Card[], // 玩家手牌
   _auto?: boolean, // 是否托管
 }

@@ -9,17 +9,11 @@ import { NotValidCardsException, NotOwnCardsException } from "../common/exceptio
 @component
 export default class GameService {
 
-  @autoware
-  userService: UserService;
+  @autoware userService: UserService;
+  @autoware roomService: RoomService;
+  @autoware cardService: CardService;
 
-  @autoware
-  roomService: RoomService;
-
-  @autoware
-  cardService: CardService;
-
-  public gameStart(players: Player[]): [Player[], Map<string, EventStartGame>] {
-    let resultMap = new Map<string, EventStartGame>(); // socketid => event
+  public gameStart(players: Player[]): [Player[], EventStartGame[]] {
     // 落座
     this.playersSitDown(players);
     // 分牌，顺便看看谁是第一个
@@ -33,7 +27,7 @@ export default class GameService {
         players[i].hasDiamondFour = true;
       }
     }
-    resultMap = this.handlePlayers(players, innerCards => {
+    return [players, this.handlePlayers(players, innerCards => {
       return {
         previousUid: 0,
         previousCard: [],
@@ -41,8 +35,7 @@ export default class GameService {
         enablePass: false, // 是否可以过牌：开始时和傍风时不能pass
         isAllPassed: false, // 是否所有玩家都pass了，即傍风
       }
-    });
-    return [players, resultMap]; // 返回 socketid => 整个内容 的数组，方便循环发送消息
+    })];
   }
 
   // 打完了牌，赢了
@@ -68,8 +61,7 @@ export default class GameService {
   }
 
   // 全大，随便出: active是我自己
-  public playAllPass(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], Map<string, EventStartGame>] {
-    let resultMap = new Map<string, EventStartGame>(); // socketid => event
+  public playAllPass(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], EventStartGame[]] {
     const currentPlayer = players.find(player => player.uid === currentUid);
     for (let i = 0; i < 4; i++) {
       if (players[i].uid == currentPlayer.uid) {
@@ -78,7 +70,7 @@ export default class GameService {
         players[i].active = false;
       }
     }
-    resultMap = this.handlePlayers(players, innerCards => {
+    return [players, this.handlePlayers(players, innerCards => {
       return {
         previousUid: sentCardsData.uid,
         previousCard: sentCardsData.cards, // 上家出牌
@@ -86,12 +78,11 @@ export default class GameService {
         enablePass: false, // 是否可以过牌：开始时和傍风时不能pass
         isAllPassed: true, // 是否所有玩家都pass了，即傍风
       }
-    });
-    return [players, resultMap]; // 返回 socketid => 整个内容 的数组，方便循环发送消息
+    })];
   }
 
   // 有比较牌，要比人家大: active是我自己
-  public playCompare(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], Map<string, EventStartGame>] {
+  public playCompare(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], EventStartGame[]] {
     // 先检查出牌对不对
     const sentCardPlayer = players.find(p => p.uid === sentCardsData.uid);
     if (!this.cardService.checkOwn(sentCardPlayer._cards, CardService.numToCard(sentCardsData.cards))) {
@@ -102,7 +93,6 @@ export default class GameService {
       throw new NotValidCardsException(`${sentCardsData}`);
     }
 
-    let resultMap = new Map<string, EventStartGame>(); // socketid => event
     const currentPlayer = players.find(player => player.uid === currentUid);
     for (let i = 0; i < 4; i++) {
       if (players[i].uid == currentPlayer.uid) {
@@ -114,7 +104,7 @@ export default class GameService {
         players[i]._cards = players[i]._cards.filter(c => !sentCardsData.cards.includes(c.num));
       }
     }
-    resultMap = this.handlePlayers(players, innerCards => {
+    return [players, this.handlePlayers(players, innerCards => {
       return {
         previousUid: sentCardsData.uid,
         previousCard: sentCardsData.cards, // 上家出牌
@@ -122,12 +112,11 @@ export default class GameService {
         enablePass: true, // 是否可以过牌：开始时和傍风时不能pass
         isAllPassed: false, // 是否所有玩家都pass了，即傍风
       }
-    });
-    return [players, resultMap]; // 返回 socketid => 整个内容 的数组，方便循环发送消息
+    })];
   }
 
-  private handlePlayers(players: Player[], readyFunction: (c: Card[]) => Ready): Map<string, EventStartGame> {
-    const resultMap = new Map<string, EventStartGame>();
+  private handlePlayers(players: Player[], readyFunction: (c: Card[]) => Ready): EventStartGame[] {
+    const resultMsg: EventStartGame[] = [];
     for (let player of players) {
       const event: EventStartGame = {
         uid: player.uid,
@@ -141,9 +130,9 @@ export default class GameService {
           && p.uid !== player._leftPlayerUid && p.uid !== player.uid
         ))
       }
-      resultMap.set(player._socketId, event);
+      resultMsg.push(event);
     }
-    return resultMap;
+    return resultMsg;
   }
 
   // 安排座次，即设定上下位
@@ -174,7 +163,6 @@ export default class GameService {
 
       _leftPlayerUid: 0, // 上家玩家uid
       _rightPlayerUid: 0, // 下家玩家uid
-      _socketId: socketId, // 玩家socketId
       _cards: null, // 玩家手牌
       _auto: false, // 是否托管
     };
