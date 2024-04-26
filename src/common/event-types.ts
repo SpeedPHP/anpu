@@ -1,4 +1,5 @@
 import Card from "../entity/card";
+import { Role } from "../common/card-types";
 
 export type EventWaitingStatus = {
   roomUsers: string[] // 等待中的用户名称列表
@@ -12,45 +13,34 @@ export type SentCardsData = {
 
 // 出牌的数据
 export type SentEvent = {
-  sentCards:number[], // 出牌
-  pass:boolean, // 是否pass
+  sentCards: number[], // 出牌
+  pass: boolean, // 是否pass
 }
 
 export type EventRelogin = {}
+
 // 结束结算
 export type EventGameOver = {
-  myCards: number[], // 我的手牌
-  myWinRank: number, // 我的排名
-  isBigBoss: boolean, // 是否是大地主
-  isMiniBoss: boolean, // 是否是小地主
-  continue: boolean // 是否继续游戏，或者直接退出到准备阶段
-}
-
-export type EventStartGame = {
-  uid: number,
-  username: string,
-  myCards: number[], // 我的手牌
-  active: boolean, // 是否可行动，准备出牌
-
-  ready: Ready | {}, // 行动，准备决策的内容
-
-  leftPlayer: Player, // 左边玩家
-  rightPlayer: Player, // 右边玩家
-  upperPlayer: Player // 上方玩家
+  role: Role, // 3 双地，2 大地，1 小地，0 贫农
+  rank: number, // 我的排名
+  score: number, // 我的得分 负数要贡牌，正数是拿牌
+  continue: boolean, // 是否继续游戏，或者直接退出到准备阶段
 }
 
 export type EventPlayCard = {
   uid: number;
   username: string;
   myCards: number[]; // 我的手牌
+  lastCards: number[]; // 我的手牌
   active: boolean; // 是否可行动，准备出牌
 
-  ready: Ready; // 行动，准备决策的内容
+  ready: Ready | {}, // 行动，准备决策的内容
 
   leftPlayer: Player; // 左边玩家
   rightPlayer: Player; // 右边玩家
   upperPlayer: Player; // 上方玩家
 }
+export type EventStartGame = EventPlayCard;
 
 export type Ready = {
   previousUid: number, // 上家玩家uid，为0则没有上家
@@ -77,6 +67,8 @@ export type Player = {
   //_socketId?: string, // 玩家socketId
   _cards?: Card[], // 玩家手牌
   _auto?: boolean, // 是否托管
+  _winScore?: number, // 赢的分数
+  _role?: Role, // 赢的角色
 }
 
 // 复制对象，但去除下划线的属性

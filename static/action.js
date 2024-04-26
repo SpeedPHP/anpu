@@ -28,7 +28,6 @@ function connect(uid, access) {
   });
   socket.on('connect', function () {
     showResponse('链接成功！');
-    socket.emit("c2sJoinWaiting");
   });
   socket.on('disconnect', function () {
     showResponse('断开链接！');
@@ -57,6 +56,11 @@ function play() {
   });
 }
 
+function ready() {
+  socket.emit("c2sJoinWaiting");
+  showResponse("开始匹配...")
+}
+
 function pass() {
   socket.emit('c2sPlayCard', {
     card: [], pass: true
@@ -75,7 +79,7 @@ function login() {
     contentType: "application/json; charset=utf-8", // 设置内容类型为JSON
     dataType: "json",
     success: function(response) {
-      showResponse(response.username + " 登录成功，准备加入房间");
+      showResponse(response.username + " 登录成功");
       connect(response.uid, response.access);
     }
   });

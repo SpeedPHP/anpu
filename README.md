@@ -96,10 +96,9 @@ s2cPlayCard = {
 
 ```
 s2cGameOver = {
-  myCards:number[] // 我的手牌
-  myWinRank:number // 我的排名
-  isBigBoss: boolean // 是否是大地主
-  isMiniBoss: boolean // 是否是小地主
+  role:number // 3 双地，2 大地，1 小地，0 贫农
+  rank:number // 排名
+  score:number // 得分 负数要贡牌，正数是拿牌
   continue:boolean // 是否继续游戏，或者直接退出到准备阶段
 }
 ```

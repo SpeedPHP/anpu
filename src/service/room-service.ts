@@ -12,6 +12,7 @@ export default class RoomService {
   static ROOM_PLAYERS = "room:player:";
   static ROOM_PREVIOUS_ACTIVE_USER = "room:previous_active:";
   static ROOM_LAST_SENT_DATA = "room:last_sent_data:";
+  static ROOM_GAME_RECORD = "room:game_record:";
 
   // 获取我所在的房间
   public async findMyRoomId(uid: number): Promise<string> {
@@ -44,7 +45,20 @@ export default class RoomService {
   public async getRoomLastData(roomId: string): Promise<SentCardsData | null> {
     const data = await this.redisObj.get(RoomService.ROOM_LAST_SENT_DATA + roomId);
     if (!data) return null;
-    return <SentCardsData> JSON.parse(data);
+    return <SentCardsData>JSON.parse(data);
+  }
+
+  // 记录游戏
+  public async recordGame(roomId: string, uid: number, cards: number[]): Promise<void> {
+    const record = `${this.formatDate(new Date())}-${uid}-${cards.join(',')}`;
+    await this.redisObj.rpush(RoomService.ROOM_GAME_RECORD + roomId, record);
+  }
+
+  // 获取游戏记录并删除
+  public async getAndClearGameRecord(roomId: string): Promise<string[]> {
+    const record = await this.redisObj.lrange(RoomService.ROOM_GAME_RECORD + roomId, 0, -1);
+    await this.redisObj.del(RoomService.ROOM_GAME_RECORD + roomId);
+    return record;
   }
 
   // 更新房间内的玩家！
@@ -68,9 +82,10 @@ export default class RoomService {
     return waitingRoomId;
   }
 
-  // TODO 玩家离开后，托管到结束，然后销毁房间；注意删除所有人的对应关系
-  public endRoom(roomId: string) {
-    
+  // 重新开始
+  public async restartRoom(roomId: string): Promise<void> {
+    await this.redisObj.del(RoomService.ROOM_PREVIOUS_ACTIVE_USER + roomId);
+    await this.redisObj.del(RoomService.ROOM_LAST_SENT_DATA + roomId);
   }
 
   // 创建一个等待房间，并加入
@@ -98,4 +113,16 @@ export default class RoomService {
     }
     return result;
   }
+
+  // 日期格式
+  private formatDate(date: Date): string {
+    let year = date.getFullYear();
+    let month = ("0" + (date.getMonth() + 1)).slice(-2); // 月份记得加1，并补0
+    let day = ("0" + date.getDate()).slice(-2);
+    let hours = ("0" + date.getHours()).slice(-2);
+    let minutes = ("0" + date.getMinutes()).slice(-2);
+    let seconds = ("0" + date.getSeconds()).slice(-2);
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
 }

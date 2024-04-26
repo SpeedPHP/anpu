@@ -7,6 +7,13 @@ export enum Suit {
   '红桃'
 }
 
+export enum Role {
+  'Poor',
+  'MiniBoss',
+  'BigBoss',
+  'DoubleBoss'
+}
+
 export const Point: string[] = [
   '4',
   '5',
@@ -36,7 +43,7 @@ export enum Kind {
 export type KindCompare = { group: Card[], compare: number };
 
 // 打印牌
-export function printCards(cards: Card[]){
+export function printCards(cards: Card[]) {
   cards.sort((a, b) => a.num - b.num);
   for (let i = 0; i < cards.length; i++) {
     console.log(cards[i].suitName + cards[i].pointName);

@@ -64,7 +64,7 @@ export default class FrontPage {
       this.gameService.createPlayer(3, "test3", "test3"),
       this.gameService.createPlayer(4, "test4", "test4"),];
     const newPlayers = this.gameService.gameStart(players);
-    logx(Object.fromEntries(newPlayers[1]));
+    logx(newPlayers[1]);
     return "start";
   }
 

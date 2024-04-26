@@ -65,13 +65,13 @@ export default class CardService {
 
   // 出牌是否地主
   // isBigBoss取第0值，isMiniBoss取1值
-  public isBoss(cards: Card[]): [boolean, boolean] {
+  public isBoss(cardNums: number[]): [boolean, boolean] {
     let isBigBoss = false;
     let isMiniBoss = false;
-    for (let card of cards) {
-      if (card.num == CardService.BIG_BOSS_CARD_NUM) {
+    for (let num of cardNums) {
+      if (num == CardService.BIG_BOSS_CARD_NUM) {
         isBigBoss = true;
-      } else if (card.num == CardService.MINI_BOSS_CARD_NUM) {
+      } else if (num == CardService.MINI_BOSS_CARD_NUM) {
         isMiniBoss = true;
       }
     }

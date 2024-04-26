@@ -4,7 +4,7 @@ import RoomService from "../service/room-service";
 import { Player, SentCardsData, SentEvent, EventStartGame, Ready } from "../common/event-types";
 import GameService from "../service/game-service";
 import CardService from "../service/card-service";
-import { NotActiveUserException } from "../common/exception";
+import { NotActiveUserException, NotOwnCardsException } from "../common/exception";
 
 @component
 export default class EventHandler {
@@ -43,6 +43,7 @@ export default class EventHandler {
     } else {
       // 满员，开始游戏，落座
       const [storePlayers, respMsg] = this.gameService.gameStart(players);
+      this.roomService.restartRoom(roomId);
       // 保存房间玩家
       this.roomService.updateRoomPlayers(roomId, storePlayers);
       // 通知出牌
@@ -86,7 +87,7 @@ export default class EventHandler {
     const validUid = await this.roomService.getNextActiveUid(roomId);
     if (validUid != opUid) {
       // 不是当前可出牌者，返回错误
-      throw new NotActiveUserException(`${opUid} is not active user, {$player}, {$sentMsg}`);
+      throw new NotActiveUserException(`${opUid} is not active user, ${sentMsg}`);
     }
     const players: Player[] = await this.roomService.getRoomPlayers(roomId);
     const nextPlayer = this.gameService.findNextNonWinPlayer(players, players.find((p) => p.uid == opUid));
@@ -107,8 +108,17 @@ export default class EventHandler {
         [storePlayers, respMsg] = this.gameService.playCompare(players, nextPlayer.uid, sentCardsData);
       }
     } else {
+      // 判定大小地主
+      let [isBigBoss, isMiniBoss] = this.cardService.isBoss(sentMsg.sentCards);
+      if(isBigBoss == true) players.find(p => p.uid == opUid).isBigBoss = true;
+      if(isMiniBoss == true) players.find(p => p.uid == opUid).isMiniBoss = true;
+
+      const isValid = this.gameService.checkAndDropCards(players.find(p => p.uid == opUid), sentMsg.sentCards);
+      if(isValid == false) {
+        throw new NotOwnCardsException("not valid cards");
+      }
       // TODO 检查是否赢了
-      log(sentCardsData);
+      // log(sentCardsData);
       // 比较牌是这次出的
       [storePlayers, respMsg] = this.gameService.playCompare(players, nextPlayer.uid, sentCardsData);
     }

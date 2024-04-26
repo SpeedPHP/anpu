@@ -4,7 +4,8 @@ import Card from "../entity/card";
 import UserService from "../service/user-service";
 import RoomService from "../service/room-service";
 import CardService from "../service/card-service";
-import { NotValidCardsException, NotOwnCardsException } from "../common/exception";
+import { NotValidCardsException } from "../common/exception";
+import { Role } from "../common/card-types";
 
 @component
 export default class GameService {
@@ -21,13 +22,24 @@ export default class GameService {
     for (let i = 0; i < 4; i++) {
       players[i]._cards = cards[i];
       players[i].cardCount = cards[i].length;
+      // 隐藏看看是否是大小地主
+      const [isBigBoss, isMiniBoss] = this.cardService.isBoss(CardService.cardToNum(cards[i]));
+      if (isBigBoss && isMiniBoss) {
+        players[i]._role = Role.DoubleBoss;
+      } else if (isBigBoss) {
+        players[i]._role = Role.BigBoss;
+      } else if (isMiniBoss) {
+        players[i]._role = Role.MiniBoss;
+      } else {
+        players[i]._role = Role.Poor;
+      }
       if (this.cardService.hasFirstCard(cards[i])) { // 出牌人
         players[i].isAllPassed = true;
         players[i].active = true;
         players[i].hasDiamondFour = true;
       }
     }
-    return [players, this.handlePlayers(players, innerCards => {
+    return [players, this.handlePlayers(players, [], innerCards => {
       return {
         previousUid: 0,
         previousCard: [],
@@ -39,8 +51,40 @@ export default class GameService {
   }
 
   // 打完了牌，赢了
-  // 看看赢了几个，如果都赢了就结算
-  public emptyWin() { }
+  // 看看赢了几个，如果都赢了就结算，返回true则游戏结束
+  public checkWinOver(players: Player[], sentData: SentCardsData): boolean {
+    // 检查当前用户是否赢了
+    const currentPlayer = players.find(player => player.uid === sentData.uid);
+    if (currentPlayer._cards.length === 0 || currentPlayer._cards.every(c => sentData.cards.includes(c.num))) { // 剩下的就是出的牌，或者没牌了，就赢了
+      // 设置当前用户为赢
+      currentPlayer.winRank = players.filter(p => p.winRank > 0).length + 1;
+      // 分组
+      const bossTeam: Player[] = players.filter(p => p._role != Role.Poor);
+      const poorTeam: Player[] = players.filter(p => p._role == Role.Poor);
+      if (this.isOver(bossTeam, poorTeam)) {
+        const FirstWin = players.find(p => p.winRank === 1);
+        if (FirstWin._hideBigBoss && FirstWin._hideMiniBoss) 
+
+
+
+
+      } else {
+        return false; // 未结束，返回false
+      }
+    }
+    return false;
+  }
+
+  // 判定两组是否有一组结束了
+  private isOver(bossTeam: Player[], poorTeam: Player[]): boolean {
+    const bossWinCount: number = bossTeam.filter(p => p.winRank > 0).length;
+    const poorWinCount: number = poorTeam.filter(p => p.winRank > 0).length;
+    if (bossTeam.length == 1) { // 双地的情况
+      return bossWinCount == 1 || poorWinCount == 3;
+    } else {
+      return bossWinCount == 2 || poorWinCount == 2;
+    }
+  }
 
   // 看看是否傍风，或者全大
   public isAllPass(players: Player[], currentUid: number, sentData: SentCardsData): boolean {
@@ -70,7 +114,7 @@ export default class GameService {
         players[i].active = false;
       }
     }
-    return [players, this.handlePlayers(players, innerCards => {
+    return [players, this.handlePlayers(players, sentCardsData.cards, innerCards => {
       return {
         previousUid: sentCardsData.uid,
         previousCard: sentCardsData.cards, // 上家出牌
@@ -81,13 +125,19 @@ export default class GameService {
     })];
   }
 
+  // 检查牌和去掉牌
+  public checkAndDropCards(player: Player, sentCardNums: number[]): boolean {
+    const cardNums = CardService.cardToNum(player._cards);
+    if (sentCardNums.every(n => cardNums.includes(n))) {
+      player._cards = player._cards.filter(card => !sentCardNums.includes(card.num));
+      return true;
+    } else {
+      false; // 牌不在，出错
+    }
+  }
+
   // 有比较牌，要比人家大: active是我自己
   public playCompare(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], EventStartGame[]] {
-    // 先检查出牌对不对
-    const sentCardPlayer = players.find(p => p.uid === sentCardsData.uid);
-    if (!this.cardService.checkOwn(sentCardPlayer._cards, CardService.numToCard(sentCardsData.cards))) {
-      throw new NotOwnCardsException(`${sentCardsData}`);
-    }
     const [isValid, aCardKind, aCardCompare] = this.cardService.checkCard(CardService.numToCard(sentCardsData.cards));
     if (!isValid) {
       throw new NotValidCardsException(`${sentCardsData}`);
@@ -95,16 +145,9 @@ export default class GameService {
 
     const currentPlayer = players.find(player => player.uid === currentUid);
     for (let i = 0; i < 4; i++) {
-      if (players[i].uid == currentPlayer.uid) {
-        players[i].active = true;
-      } else {
-        players[i].active = false;
-      }
-      if (players[i].uid == sentCardsData.uid) { // 出牌家也要把牌减了
-        players[i]._cards = players[i]._cards.filter(c => !sentCardsData.cards.includes(c.num));
-      }
+      players[i].active = players[i].uid == currentPlayer.uid;
     }
-    return [players, this.handlePlayers(players, innerCards => {
+    return [players, this.handlePlayers(players, sentCardsData.cards, innerCards => {
       return {
         previousUid: sentCardsData.uid,
         previousCard: sentCardsData.cards, // 上家出牌
@@ -115,13 +158,14 @@ export default class GameService {
     })];
   }
 
-  private handlePlayers(players: Player[], readyFunction: (c: Card[]) => Ready): EventStartGame[] {
+  private handlePlayers(players: Player[], lastCards: number[], readyFunction: (c: Card[]) => Ready): EventStartGame[] {
     const resultMsg: EventStartGame[] = [];
     for (let player of players) {
       const event: EventStartGame = {
         uid: player.uid,
         username: player.username,
         myCards: CardService.cardToNum(player._cards), // 我的手牌
+        lastCards: lastCards,
         active: player.active, // 是否可行动，准备出牌
         ready: player.active ? readyFunction(player._cards) : {}, // 行动，准备决策的内容
         leftPlayer: deepHideCopy(players.find(p => p.uid === player._leftPlayerUid)), // 左边玩家
