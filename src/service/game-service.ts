@@ -58,28 +58,76 @@ export default class GameService {
     if (currentPlayer._cards.length === 0 || currentPlayer._cards.every(c => sentData.cards.includes(c.num))) { // 剩下的就是出的牌，或者没牌了，就赢了
       // 设置当前用户为赢
       currentPlayer.winRank = players.filter(p => p.winRank > 0).length + 1;
-      // 分组
-      const bossTeam: Player[] = players.filter(p => p._role != Role.Poor);
-      const poorTeam: Player[] = players.filter(p => p._role == Role.Poor);
-      if (this.isOver(bossTeam, poorTeam)) {
-        const FirstWin = players.find(p => p.winRank === 1);
-        if (FirstWin._hideBigBoss && FirstWin._hideMiniBoss) 
+      const isDoubleBoss = players.some(p => p._role == Role.DoubleBoss);
+      if (this.isOver(players, isDoubleBoss)) { // 完结了
+        /**
+         * 
+1	  2	  3  	4
+双	农	农	农
+农	双	农	农
+农	农	双	农
+农	农	农	双
 
+主	主	农	农
+主	农	主	农
+主	农	农	主
 
-
-
+农	农	主	主
+农	主	主	农
+农	主	农	主
+         */
+        if(isDoubleBoss){ // 有双地，只要找双地在什么位置
+          const doubleBossPlayer = players.find(p => p._role == Role.DoubleBoss);
+          if(doubleBossPlayer.winRank == 1) {
+            players.forEach(p => p._winScore = (p._role == Role.DoubleBoss) ? 6 : -2);
+          } else if(doubleBossPlayer.winRank == 2) {
+            players.forEach(p => p._winScore = (p._role == Role.DoubleBoss) ? 3 : -1);
+          } else if(doubleBossPlayer.winRank == 3){
+            players.forEach(p => p._winScore = (p._role == Role.DoubleBoss) ? -3 : 1);
+          } else {
+            players.forEach(p => p._winScore = (p._role == Role.DoubleBoss) ? -6 : 2);
+          }
+        } else {
+          const firstPlayer = players.find(p => p.winRank == 1);
+          const secondPlayer = players.find(p => p.winRank == 2);
+          const thirdPlayer = players.find(p => p.winRank == 3);
+          if(firstPlayer._role != Role.Poor) { 
+            // 第一名是地主
+            if(secondPlayer._role != Role.Poor) { // 主 主 农 农
+              players.forEach(p => p._winScore = (p._role != Role.Poor) ? 2 : -2); // 主前农后
+            } else {
+              if(thirdPlayer._role != Role.Poor) { // 主 农 主 农
+                players.forEach(p => p._winScore = (p._role != Role.Poor) ? 1 : -1);
+              }else{ // 主 农 农 主
+                players.forEach(p => p._winScore = (p._role != Role.Poor) ? 0 : 0);
+              }
+            }
+          } else { 
+            // 第一名是贫农
+            if(secondPlayer._role == Role.Poor) { // 农 农 主 主
+              players.forEach(p => p._winScore = (p._role != Role.Poor) ? -2 : 2); // 主前农后
+            } else {
+              if(thirdPlayer._role == Role.Poor) { // 农 主 农 主
+                players.forEach(p => p._winScore = (p._role != Role.Poor) ? -1 : 1);
+              } else { // 农 主 主 农
+                players.forEach(p => p._winScore = (p._role != Role.Poor) ? 0 : 0);
+              }
+            }
+          }
+        }
+        return true; // 结束，并计算完成
       } else {
-        return false; // 未结束，返回false
+        return false; // 有人结束，返回false
       }
     }
-    return false;
+    return false; // 未打完手牌，返回false
   }
 
   // 判定两组是否有一组结束了
-  private isOver(bossTeam: Player[], poorTeam: Player[]): boolean {
-    const bossWinCount: number = bossTeam.filter(p => p.winRank > 0).length;
-    const poorWinCount: number = poorTeam.filter(p => p.winRank > 0).length;
-    if (bossTeam.length == 1) { // 双地的情况
+  private isOver(players: Player[], isDoubleBoss: boolean): boolean {
+    const bossWinCount: number = players.filter(p => p._role != Role.Poor).filter(p => p.winRank > 0).length;
+    const poorWinCount: number = players.filter(p => p._role == Role.Poor).filter(p => p.winRank > 0).length;
+    if (isDoubleBoss) { // 双地的情况
       return bossWinCount == 1 || poorWinCount == 3;
     } else {
       return bossWinCount == 2 || poorWinCount == 2;
