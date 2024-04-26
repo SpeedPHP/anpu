@@ -41,7 +41,7 @@ function connect(uid, access) {
   socket.on('s2cPlayCard', function (data) {
     showResponse("游戏中" + JSON.stringify(data));
   });
-  socket.on('s2cStartGame', function (data) {
+  socket.on('s2cGameStart', function (data) {
     showResponse("开始游戏" + JSON.stringify(data));
   });
   socket.on('s2cRelogin', function (data) {

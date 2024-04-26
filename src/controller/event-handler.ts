@@ -1,7 +1,7 @@
 import { log, component, SocketIo, io, autoware, error } from "typespeed";
 import UserService from "../service/user-service";
 import RoomService from "../service/room-service";
-import { Player, SentCardsData, SentEvent, EventStartGame, Ready } from "../common/event-types";
+import { Player, SentCardsData, SentEvent, EventPlayCard, Ready } from "../common/event-types";
 import GameService from "../service/game-service";
 import CardService from "../service/card-service";
 import { NotActiveUserException, NotOwnCardsException } from "../common/exception";
@@ -12,7 +12,7 @@ export default class EventHandler {
   static AUTO_PLAY_DELAY_SECOND = 5000; // 自动托管的出牌延迟毫秒
   static s2cReLogin = "s2cReLogin"; // 要求重新登录
   static s2cWaitingStatus = "s2cWaitingStatus"; // 等候状态
-  static s2cStartGame = "s2cStartGame"; // 开始游戏，发送消息之前注意要updateRoom
+  static s2cGameStart = "s2cGameStart"; // 开始游戏，发送消息之前注意要updateRoom
   static s2cPlayCard = "s2cPlayCard"; // 决策出牌，发送消息之前注意要updateRoom
   static s2cGameOver = "s2cGameOver"; // 游戏结束
 
@@ -53,7 +53,7 @@ export default class EventHandler {
         }
         const socketId = await this.userService.getSocketId(msg.uid);
         if (socketId) {
-          io.to(socketId).emit(EventHandler.s2cStartGame, msg);
+          io.to(socketId).emit(EventHandler.s2cGameStart, msg);
         } else if (msg.active) {
           // 是当前准备出牌的玩家，并且socketId不见了，就要托管。
           this.autoPlay(msg.uid, msg.ready as Ready);
@@ -93,7 +93,7 @@ export default class EventHandler {
     const nextPlayer = this.gameService.findNextNonWinPlayer(players, players.find((p) => p.uid == opUid));
 
     let storePlayers: Player[];
-    let respMsg: EventStartGame[];
+    let respMsg: EventPlayCard[];
     let sentCardsData: SentCardsData = { uid: opUid, cards: sentMsg.sentCards }
     if (sentMsg.pass == true) { // 点 pass
       // 因为点pass了这次什么牌也不算

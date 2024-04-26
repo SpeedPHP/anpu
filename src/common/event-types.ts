@@ -19,14 +19,6 @@ export type SentEvent = {
 
 export type EventRelogin = {}
 
-// 结束结算
-export type EventGameOver = {
-  role: Role, // 3 双地，2 大地，1 小地，0 贫农
-  rank: number, // 我的排名
-  score: number, // 我的得分 负数要贡牌，正数是拿牌
-  continue: boolean, // 是否继续游戏，或者直接退出到准备阶段
-}
-
 export type EventPlayCard = {
   uid: number;
   username: string;
@@ -40,7 +32,16 @@ export type EventPlayCard = {
   rightPlayer: Player; // 右边玩家
   upperPlayer: Player; // 上方玩家
 }
-export type EventStartGame = EventPlayCard;
+
+// 结束结算
+export type EventGameOver = {
+  continue: boolean, // 是否继续游戏，或者直接退出到准备阶段
+  currentPlayer: Player; // 当前玩家
+  
+  leftPlayer: Player; // 左边玩家
+  rightPlayer: Player; // 右边玩家
+  upperPlayer: Player; // 上方玩家
+}
 
 export type Ready = {
   previousUid: number, // 上家玩家uid，为0则没有上家

@@ -49,7 +49,7 @@ s2cWaitingStatus = {
 
 ### 开始游戏
 
-s2cStartGame = s2cPlayCard // 内容相同，只是事件名不同
+s2cGameStart = s2cPlayCard // 内容相同，只是事件名不同
 
 ### 玩家游戏端出牌
 
@@ -82,10 +82,12 @@ s2cPlayCard = {
     cardCount: number // 剩余牌数
     active: boolean // 是否在行动，准备出牌
     winRank: number // 第几名，默认0未赢
+    winScore: number // 输赢分数
     isBigBoss: boolean // 是否是大地主
     isMiniBoss: boolean // 是否是小地主
     isPrevious: boolean // 是否是上家
     isAllPassed: boolean // 是否所有玩家都pass了，即傍风
+    hasDiamondFour: boolean, // 是否有散角4
   },
   rightPlayer = leftPlayer // 右边玩家
   upperPlayer = leftPlayer // 上方玩家
@@ -96,9 +98,10 @@ s2cPlayCard = {
 
 ```
 s2cGameOver = {
-  role:number // 3 双地，2 大地，1 小地，0 贫农
-  rank:number // 排名
-  score:number // 得分 负数要贡牌，正数是拿牌
   continue:boolean // 是否继续游戏，或者直接退出到准备阶段
+  currentPlayer: Player, // 当前玩家
+  leftPlayer: Player, // 左边玩家
+  rightPlayer: Player, // 右边玩家
+  upperPlayer: Player, // 上方玩家
 }
 ```

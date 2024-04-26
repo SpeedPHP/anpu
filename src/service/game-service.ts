@@ -1,5 +1,5 @@
 import { component, autoware, log } from "typespeed";
-import { SentCardsData, Player, EventStartGame, deepHideCopy, Ready } from "../common/event-types";
+import { SentCardsData, Player, EventPlayCard, deepHideCopy, Ready } from "../common/event-types";
 import Card from "../entity/card";
 import UserService from "../service/user-service";
 import RoomService from "../service/room-service";
@@ -14,7 +14,7 @@ export default class GameService {
   @autoware roomService: RoomService;
   @autoware cardService: CardService;
 
-  public gameStart(players: Player[]): [Player[], EventStartGame[]] {
+  public gameStart(players: Player[]): [Player[], EventPlayCard[]] {
     // 落座
     this.playersSitDown(players);
     // 分牌，顺便看看谁是第一个
@@ -153,7 +153,7 @@ export default class GameService {
   }
 
   // 全大，随便出: active是我自己
-  public playAllPass(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], EventStartGame[]] {
+  public playAllPass(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], EventPlayCard[]] {
     const currentPlayer = players.find(player => player.uid === currentUid);
     for (let i = 0; i < 4; i++) {
       if (players[i].uid == currentPlayer.uid) {
@@ -185,7 +185,7 @@ export default class GameService {
   }
 
   // 有比较牌，要比人家大: active是我自己
-  public playCompare(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], EventStartGame[]] {
+  public playCompare(players: Player[], currentUid: number, sentCardsData: SentCardsData): [Player[], EventPlayCard[]] {
     const [isValid, aCardKind, aCardCompare] = this.cardService.checkCard(CardService.numToCard(sentCardsData.cards));
     if (!isValid) {
       throw new NotValidCardsException(`${sentCardsData}`);
@@ -206,10 +206,10 @@ export default class GameService {
     })];
   }
 
-  private handlePlayers(players: Player[], lastCards: number[], readyFunction: (c: Card[]) => Ready): EventStartGame[] {
-    const resultMsg: EventStartGame[] = [];
+  private handlePlayers(players: Player[], lastCards: number[], readyFunction: (c: Card[]) => Ready): EventPlayCard[] {
+    const resultMsg: EventPlayCard[] = [];
     for (let player of players) {
-      const event: EventStartGame = {
+      const event: EventPlayCard = {
         uid: player.uid,
         username: player.username,
         myCards: CardService.cardToNum(player._cards), // 我的手牌
