@@ -79,13 +79,13 @@ export default class GameService {
         if(isDoubleBoss){ // 有双地，只要找双地在什么位置
           const doubleBossPlayer = players.find(p => p._role == Role.DoubleBoss);
           if(doubleBossPlayer.winRank == 1) {
-            players.forEach(p => p._winScore = (p._role == Role.DoubleBoss) ? 6 : -2);
+            players.forEach(p => p.winScore = (p._role == Role.DoubleBoss) ? 6 : -2);
           } else if(doubleBossPlayer.winRank == 2) {
-            players.forEach(p => p._winScore = (p._role == Role.DoubleBoss) ? 3 : -1);
+            players.forEach(p => p.winScore = (p._role == Role.DoubleBoss) ? 3 : -1);
           } else if(doubleBossPlayer.winRank == 3){
-            players.forEach(p => p._winScore = (p._role == Role.DoubleBoss) ? -3 : 1);
+            players.forEach(p => p.winScore = (p._role == Role.DoubleBoss) ? -3 : 1);
           } else {
-            players.forEach(p => p._winScore = (p._role == Role.DoubleBoss) ? -6 : 2);
+            players.forEach(p => p.winScore = (p._role == Role.DoubleBoss) ? -6 : 2);
           }
         } else {
           const firstPlayer = players.find(p => p.winRank == 1);
@@ -94,23 +94,23 @@ export default class GameService {
           if(firstPlayer._role != Role.Poor) { 
             // 第一名是地主
             if(secondPlayer._role != Role.Poor) { // 主 主 农 农
-              players.forEach(p => p._winScore = (p._role != Role.Poor) ? 2 : -2); // 主前农后
+              players.forEach(p => p.winScore = (p._role != Role.Poor) ? 2 : -2); // 主前农后
             } else {
               if(thirdPlayer._role != Role.Poor) { // 主 农 主 农
-                players.forEach(p => p._winScore = (p._role != Role.Poor) ? 1 : -1);
+                players.forEach(p => p.winScore = (p._role != Role.Poor) ? 1 : -1);
               }else{ // 主 农 农 主
-                players.forEach(p => p._winScore = (p._role != Role.Poor) ? 0 : 0);
+                players.forEach(p => p.winScore = (p._role != Role.Poor) ? 0 : 0);
               }
             }
           } else { 
             // 第一名是贫农
             if(secondPlayer._role == Role.Poor) { // 农 农 主 主
-              players.forEach(p => p._winScore = (p._role != Role.Poor) ? -2 : 2); // 主前农后
+              players.forEach(p => p.winScore = (p._role != Role.Poor) ? -2 : 2); // 主前农后
             } else {
               if(thirdPlayer._role == Role.Poor) { // 农 主 农 主
-                players.forEach(p => p._winScore = (p._role != Role.Poor) ? -1 : 1);
+                players.forEach(p => p.winScore = (p._role != Role.Poor) ? -1 : 1);
               } else { // 农 主 主 农
-                players.forEach(p => p._winScore = (p._role != Role.Poor) ? 0 : 0);
+                players.forEach(p => p.winScore = (p._role != Role.Poor) ? 0 : 0);
               }
             }
           }

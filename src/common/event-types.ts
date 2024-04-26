@@ -56,6 +56,7 @@ export type Player = {
   cardCount?: number, // 剩余牌数
   active?: boolean, // 是否在行动，准备出牌
   winRank?: number, // 第几名，默认0未赢
+  winScore?: number, // 赢的分数
   isBigBoss?: boolean, // 是否是大地主
   isMiniBoss?: boolean, // 是否是小地主
   isAllPassed?: boolean, // 是否所有玩家都pass了，即傍风
@@ -67,7 +68,6 @@ export type Player = {
   //_socketId?: string, // 玩家socketId
   _cards?: Card[], // 玩家手牌
   _auto?: boolean, // 是否托管
-  _winScore?: number, // 赢的分数
   _role?: Role, // 赢的角色
 }
 
