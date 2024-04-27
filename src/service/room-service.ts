@@ -13,6 +13,7 @@ export default class RoomService {
   static ROOM_PREVIOUS_ACTIVE_USER = "room:previous_active:";
   static ROOM_LAST_SENT_DATA = "room:last_sent_data:";
   static ROOM_GAME_RECORD = "room:game_record:";
+  static ROOM_GAME_START_TIME = "room:start_time:";
 
   // 获取我所在的房间
   public async findMyRoomId(uid: number): Promise<string> {
@@ -55,10 +56,12 @@ export default class RoomService {
   }
 
   // 获取游戏记录并删除
-  public async getAndClearGameRecord(roomId: string): Promise<string[]> {
+  public async getAndClearGameRecord(roomId: string): Promise<[string, string[]]> {
     const record = await this.redisObj.lrange(RoomService.ROOM_GAME_RECORD + roomId, 0, -1);
+    const startTime = await this.redisObj.get(RoomService.ROOM_GAME_START_TIME + roomId);
     await this.redisObj.del(RoomService.ROOM_GAME_RECORD + roomId);
-    return record;
+    await this.redisObj.del(RoomService.ROOM_GAME_START_TIME + roomId);
+    return [startTime, record];
   }
 
   // 更新房间内的玩家！
@@ -86,6 +89,7 @@ export default class RoomService {
   public async restartRoom(roomId: string): Promise<void> {
     await this.redisObj.del(RoomService.ROOM_PREVIOUS_ACTIVE_USER + roomId);
     await this.redisObj.del(RoomService.ROOM_LAST_SENT_DATA + roomId);
+    await this.redisObj.set(RoomService.ROOM_GAME_START_TIME + roomId, this.formatDate(new Date()));
   }
 
   // 创建一个等待房间，并加入
@@ -115,7 +119,7 @@ export default class RoomService {
   }
 
   // 日期格式
-  private formatDate(date: Date): string {
+  public formatDate(date: Date): string {
     let year = date.getFullYear();
     let month = ("0" + (date.getMonth() + 1)).slice(-2); // 月份记得加1，并补0
     let day = ("0" + date.getDate()).slice(-2);

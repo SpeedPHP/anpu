@@ -1,4 +1,6 @@
 import UserDto from "../entity/user-dto";
+import GameLogDto from "../entity/game-log-dto";
+import PlayLogDto from "../entity/play-log-dto";
 import { component, Redis, autoware, select, resultType, value, param, insert } from "typespeed";
 import { Md5 } from 'ts-md5';
 
@@ -71,9 +73,9 @@ export default class UserService {
   // 找出当前用户资料
   public async findUser(findBy: string | number): Promise<UserDto> {
     let user;
-    if(typeof findBy === "number"){
+    if (typeof findBy === "number") {
       user = await this.findUserById(findBy);
-    }else{
+    } else {
       user = await this.findUserByName(findBy);
     }
     if (!user || !user[0]) {
@@ -98,12 +100,9 @@ export default class UserService {
   @insert("insert into `user` (username, password) values (#{userName}, #{userPass})")
   private async registerUser(@param("userName") userName: string, @param("userPass") userPass: string) { }
 
-  /**
-CREATE TABLE `user` (
-  `uid` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(100) DEFAULT NULL,
-  `password` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-   */
+  @insert("insert into `game_log` (room_id, start_time, end_time, user_ids, records) values (#{room_id}, #{start_time}, #{end_time}, #{user_ids}, #{records})")
+  public async recordGameLog(gameLog: GameLogDto): Promise<number> { return null; }
+
+  @insert("insert into `play_log` (game_log_id, room_id, uid, username, role, score, rank, player) values (#{game_log_id}, #{room_id}, #{uid}, #{username}, #{role}, #{score}, #{rank}, #{player})")
+  public async recordPlayLog(playLog: PlayLogDto): Promise<void> {}
 }

@@ -29,22 +29,7 @@ export default class CardService {
       CardService.numToCard(shuffledArray.slice(39, 52)),
     ];
   }
-
-  /*   
-  4 = 1,2,3,4
-  5 = 5,6,7,8
-  6 = 9,10,11,12
-  7 = 13,14,15,16
-  8 = 17,16,19,20
-  9 = 21,22,23,24
-  10 = 25,26,27,28
-  J = 29,30,31,32
-  Q = 33,34,35,36
-  K = 37,38,39,40
-  A = 41,42,43,44
-  2 = 45,46,47,48
-  3 = 49,50,51,52 
-  */
+  
   // 号码转牌
   public static numToCard(num: number[]): Card[] {
     num = num.sort((a, b) => a - b);

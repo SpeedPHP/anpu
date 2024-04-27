@@ -1,5 +1,74 @@
 # anpu
-安铺打地主的牌玩法服务
+安铺打地主的扑克牌玩法，服务端文档
+
+## 对应关系
+
+### 牌和数字
+
+|牌|索引值Point|散角|花仔|红桃|大葵|
+|-|-|-|-|-|-|
+|4|0|1|2|3|4|
+|5|1|5|6|7|8|
+|6|2|9|10|11|12|
+|7|3|13|14|15|16|
+|8|4|17|16|19|20|
+|9|5|21|22|23|24|
+|10|6|25|26|27|28|
+|J|7|29|30|31|32|
+|Q|8|33|34|35|36|
+|K|9|37|38|39|40|
+|A|10|41|42|43|44|
+|2|11|45|46|47|48|
+|3|12|49|50|51|52|
+
+> 玩法没有大小鬼
+
+### 角色
+
+|角色|索引|索引值Role|特征|
+|-|-|-|-|
+|贫农|0|Poor| - |
+|地主仔|1|MiniBoss|大葵A|
+|大地主|2|BigBoss|大葵3|
+|双地|3|DoubleBoss|大葵A + 大葵3|
+
+### 贡牌规则
+
+|第一名|第二名|第三名|第四名|贡牌|第一名|第二名|第三名|第四名|
+|-|-|-|-|-|-|-|-|-|
+|双|农|农|农|-|6|-1|-1|-1|
+|农|双|农|农|-|-1|3|-1|-1|
+|农|农|双|农|-|1|1|-3|1|
+|农|农|农|双|-|2|2|2|-6|
+|-|-|-|-|-|-|-|-|-|
+|主|主|农|农|-|2|2|-1|-1|
+|主|农|主|农|-|1|-1|1|-1|
+|主|农|农|主|-|0|0|0|0|
+|-|-|-|-|-|-|-|-|-|
+|农|农|主|主|-|2|2|-1|-1|
+|农|主|主|农|-|0|0|0|0|
+|农|主|农|主|-|1|-1|1|-1|
+
+### 花色 Suit（enum）
+
+|花色|数字|
+|-|-|
+|大葵|0|
+|散角|1|
+|花仔|2|
+|红桃|3|
+
+### 牌型 Kind（enum）
+
+|牌型|类型名|索引
+|-|-|-|
+|单张|ONE|0|
+|对|PAIR|1|
+|葫芦，三带二|FULLHOUSE|2|
+|同花|FLUSH|3|
+|拖尸，四带一|FOUR|4|
+|蛇，顺|STRAIGHT|5|
+|同花顺|STRAIGHTFLUSH|6|
 
 ## http接口(BODY JSON)
 
@@ -105,3 +174,49 @@ s2cGameOver = {
   upperPlayer: Player, // 上方玩家
 }
 ```
+
+## 数据库表
+
+### 用户表
+
+```
+CREATE TABLE `user` (
+  `uid` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) DEFAULT NULL,
+  `password` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+```
+
+### 游戏记录表
+
+```
+CREATE TABLE `game_log` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `room_id` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `user_ids` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `records` text COLLATE utf8mb4_general_ci,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+### 玩家记录表
+
+```
+CREATE TABLE `play_log` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `game_log_id` int NOT NULL,
+  `room_id` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `uid` int DEFAULT NULL,
+  `username` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `role` tinyint DEFAULT NULL COMMENT '0贫农，1地主仔，2大地主，3双地',
+  `score` tinyint DEFAULT NULL COMMENT '贡牌得分，有负数',
+  `rank` tinyint DEFAULT NULL COMMENT '排第几',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `player` text COLLATE utf8mb4_general_ci,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+

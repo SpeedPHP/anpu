@@ -5,6 +5,8 @@ import { Player, SentCardsData, SentEvent, EventPlayCard, Ready, EventGameOver, 
 import GameService from "../service/game-service";
 import CardService from "../service/card-service";
 import { NotActiveUserException, NotOwnCardsException } from "../common/exception";
+import GameLogDto from "../entity/game-log-dto";
+import PlayLogDto from "src/entity/play-log-dto";
 
 @component
 export default class EventHandler {
@@ -163,7 +165,18 @@ export default class EventHandler {
       }
     }
     // 记录结果
-    const gameRecord = await this.roomService.getAndClearGameRecord(roomId);
-
+    const [startTime, gameRecord] = await this.roomService.getAndClearGameRecord(roomId);
+    const gameLog = new GameLogDto(
+      roomId, startTime, this.roomService.formatDate(new Date()),
+      players.map(p => p.uid).join(","),
+      gameRecord.join(",")
+    );
+    const insertId = await this.userService.recordGameLog(gameLog);
+    for(let player of players) {
+      const playLog = new PlayLogDto(
+        insertId, roomId, player.uid, player.username, player._role, player.winScore, player.winRank, JSON.stringify(player)
+      );
+      await this.userService.recordPlayLog(playLog);
+    }
   }
 }
