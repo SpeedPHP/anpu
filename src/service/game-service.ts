@@ -21,7 +21,6 @@ export default class GameService {
     const cards = this.cardService.newCards();
     for (let i = 0; i < 4; i++) {
       players[i]._cards = cards[i];
-      players[i].cardCount = cards[i].length;
       // 隐藏看看是否是大小地主
       const [isBigBoss, isMiniBoss] = this.cardService.isBoss(CardService.cardToNum(cards[i]));
       if (isBigBoss && isMiniBoss) {
@@ -244,8 +243,6 @@ export default class GameService {
     return {
       uid: uid,
       username: username,
-
-      cardCount: 0, // 剩余牌数
       active: false, // 是否在行动，准备出牌
       winRank: 0, // 第几名，默认0未赢
       isBigBoss: false, // 是否是大地主

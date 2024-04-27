@@ -23,7 +23,7 @@ export type EventPlayCard = {
   uid: number;
   username: string;
   myCards: number[]; // 我的手牌
-  lastCards: number[]; // 我的手牌
+  lastCards: number[]; // 最后的手牌
   active: boolean; // 是否可行动，准备出牌
 
   ready: Ready | {}, // 行动，准备决策的内容
@@ -54,7 +54,6 @@ export type Ready = {
 export type Player = {
   uid: number,
   username: string,
-  cardCount?: number, // 剩余牌数
   active?: boolean, // 是否在行动，准备出牌
   winRank?: number, // 第几名，默认0未赢
   winScore?: number, // 赢的分数
