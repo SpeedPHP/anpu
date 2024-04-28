@@ -1,6 +1,6 @@
 {
   "name": "anpu",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "the card play in anpu",
   "scripts": {
     "watch": "nodemon",

@@ -1,5 +1,5 @@
 import { component, log, autoware, Redis } from "typespeed";
-import { Player, SentCardsData } from "../common/event-types";
+import { Player, SentCardsData, formatDate } from "../common/event-types";
 
 @component
 export default class RoomService {
@@ -51,7 +51,7 @@ export default class RoomService {
 
   // 记录游戏
   public async recordGame(roomId: string, uid: number, cards: number[]): Promise<void> {
-    const record = `${this.formatDate(new Date())}-${uid}-${cards.join(',')}`;
+    const record = `${formatDate(new Date())}-${uid}-${cards.join(',')}`;
     await this.redisObj.rpush(RoomService.ROOM_GAME_RECORD + roomId, record);
   }
 
@@ -59,8 +59,8 @@ export default class RoomService {
   public async getAndClearGameRecord(roomId: string): Promise<[string, string[]]> {
     const record = await this.redisObj.lrange(RoomService.ROOM_GAME_RECORD + roomId, 0, -1);
     const startTime = await this.redisObj.get(RoomService.ROOM_GAME_START_TIME + roomId);
-    await this.redisObj.del(RoomService.ROOM_GAME_RECORD + roomId);
-    await this.redisObj.del(RoomService.ROOM_GAME_START_TIME + roomId);
+    // await this.redisObj.del(RoomService.ROOM_GAME_RECORD + roomId);
+    // await this.redisObj.del(RoomService.ROOM_GAME_START_TIME + roomId);
     return [startTime, record];
   }
 
@@ -89,7 +89,7 @@ export default class RoomService {
   public async restartRoom(roomId: string): Promise<void> {
     await this.redisObj.del(RoomService.ROOM_PREVIOUS_ACTIVE_USER + roomId);
     await this.redisObj.del(RoomService.ROOM_LAST_SENT_DATA + roomId);
-    await this.redisObj.set(RoomService.ROOM_GAME_START_TIME + roomId, this.formatDate(new Date()));
+    await this.redisObj.set(RoomService.ROOM_GAME_START_TIME + roomId, formatDate(new Date()));
   }
 
   // 创建一个等待房间，并加入
@@ -116,17 +116,6 @@ export default class RoomService {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
-  }
-
-  // 日期格式
-  public formatDate(date: Date): string {
-    let year = date.getFullYear();
-    let month = ("0" + (date.getMonth() + 1)).slice(-2); // 月份记得加1，并补0
-    let day = ("0" + date.getDate()).slice(-2);
-    let hours = ("0" + date.getHours()).slice(-2);
-    let minutes = ("0" + date.getMinutes()).slice(-2);
-    let seconds = ("0" + date.getSeconds()).slice(-2);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
 }

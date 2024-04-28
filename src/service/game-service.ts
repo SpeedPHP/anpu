@@ -51,7 +51,7 @@ export default class GameService {
 
   // 打完了牌，赢了
   // 看看赢了几个，如果都赢了就结算，返回true则游戏结束
-  public checkWinOver(players: Player[], sentData: SentCardsData): boolean {
+  public checkWinOver(players: Player[], sentData: SentCardsData): [boolean, boolean] {
     // 检查当前用户是否赢了
     const currentPlayer = players.find(player => player.uid === sentData.uid);
     if (currentPlayer._cards.length === 0 || currentPlayer._cards.every(c => sentData.cards.includes(c.num))) { // 剩下的就是出的牌，或者没牌了，就赢了
@@ -114,12 +114,12 @@ export default class GameService {
             }
           }
         }
-        return true; // 结束，并计算完成
+        return [true, true]; // 结束，并计算完成
       } else {
-        return false; // 有人结束，返回false
+        return [false, true]; // 有人结束，返回false
       }
     }
-    return false; // 未打完手牌，返回false
+    return [false, false]; // 未打完手牌，返回false
   }
 
   // 判定两组是否有一组结束了

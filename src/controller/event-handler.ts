@@ -1,17 +1,18 @@
 import { log, component, SocketIo, io, autoware, error } from "typespeed";
 import UserService from "../service/user-service";
 import RoomService from "../service/room-service";
-import { Player, SentCardsData, SentEvent, EventPlayCard, Ready, EventGameOver, deepHideCopy } from "../common/event-types";
+import { Player, SentCardsData, SentEvent, EventPlayCard, Ready, EventGameOver, deepHideCopy, formatDate } from "../common/event-types";
 import GameService from "../service/game-service";
 import CardService from "../service/card-service";
+import LogService from "../service/log-service";
 import { NotActiveUserException, NotOwnCardsException } from "../common/exception";
 import GameLogDto from "../entity/game-log-dto";
-import PlayLogDto from "src/entity/play-log-dto";
+import PlayLogDto from "../entity/play-log-dto";
 
 @component
 export default class EventHandler {
 
-  static AUTO_PLAY_DELAY_SECOND = 5000; // 自动托管的出牌延迟毫秒
+  static AUTO_PLAY_DELAY_SECOND = 1000; // 自动托管的出牌延迟毫秒
   static s2cReLogin = "s2cReLogin"; // 要求重新登录
   static s2cWaitingStatus = "s2cWaitingStatus"; // 等候状态
   static s2cGameStart = "s2cGameStart"; // 开始游戏，发送消息之前注意要updateRoom
@@ -22,6 +23,7 @@ export default class EventHandler {
   @autoware roomService: RoomService;
   @autoware gameService: GameService;
   @autoware cardService: CardService;
+  @autoware logService: LogService;
 
   // 加入等候
   @SocketIo.onEvent("c2sJoinWaiting")
@@ -48,6 +50,7 @@ export default class EventHandler {
       this.roomService.restartRoom(roomId);
       // 保存房间玩家
       this.roomService.updateRoomPlayers(roomId, storePlayers);
+      this.logService.gameStart(storePlayers);
       // 通知出牌
       for (let msg of respMsg) {
         this.roomService.recordGame(roomId, msg.uid, msg.myCards); // 记录开局
@@ -75,10 +78,11 @@ export default class EventHandler {
 
   // 托管，延时自动玩
   public async autoPlay(opUid: number, ready: Ready) {
+    const ramdomPlay = Math.floor(Math.random() * ready.availableCards.length);
     setTimeout(() => {
       this.play(opUid, {
         sentCards: ready.availableCards.length > 0 ? // 托管出牌策略：随机
-          ready.availableCards[Math.floor(Math.random() * ready.availableCards.length)] : [],
+          ready.availableCards[ramdomPlay] : [],
         pass: ready.enablePass == true && ready.availableCards.length == 0,
       })
     }, EventHandler.AUTO_PLAY_DELAY_SECOND);
@@ -97,6 +101,8 @@ export default class EventHandler {
     const nextPlayer = this.gameService.findNextNonWinPlayer(players, players.find((p) => p.uid == opUid));
 
     let storePlayers: Player[];
+    let isWin = false;
+    let isOver = false;
     let respMsg: EventPlayCard[];
     let sentCardsData: SentCardsData = { uid: opUid, cards: sentMsg.sentCards }
     this.roomService.recordGame(roomId, opUid, sentMsg.pass == true ? [] : sentCardsData.cards); // 记录出牌
@@ -122,15 +128,18 @@ export default class EventHandler {
       if (isValid == false) {
         throw new NotOwnCardsException("not valid cards");
       }
+
       // 检查是否完结了
-      const isOver = this.gameService.checkWinOver(players, sentCardsData);
+      [isOver, isWin] = this.gameService.checkWinOver(players, sentCardsData);
       if (isOver) {
+        this.logService.play(players, nextPlayer, opUid, sentMsg, isWin);
         this.gameOver(roomId, players);
         return;
       }
       // 比较牌是这次出的
       [storePlayers, respMsg] = this.gameService.playCompare(players, nextPlayer.uid, sentCardsData);
     }
+    this.logService.play(players, nextPlayer, opUid, sentMsg, isWin);
     await this.roomService.setRoomLastData(roomId, sentCardsData); // 保存这次的出牌
     this.roomService.setNextActiveUid(roomId, nextPlayer.uid); // 下一个出牌
     this.roomService.updateRoomPlayers(roomId, storePlayers); // 保存房间玩家
@@ -164,17 +173,18 @@ export default class EventHandler {
         io.to(socketId).emit(EventHandler.s2cGameOver, msg);
       }
     }
+    this.logService.gameOver(players);
     // 记录结果
     const [startTime, gameRecord] = await this.roomService.getAndClearGameRecord(roomId);
     const gameLog = new GameLogDto(
-      roomId, startTime, this.roomService.formatDate(new Date()),
+      roomId, startTime, formatDate(new Date()),
       players.map(p => p.uid).join(","),
-      gameRecord.join(",")
+      gameRecord.join("\n")
     );
     const insertId = await this.userService.recordGameLog(gameLog);
     for(let player of players) {
       const playLog = new PlayLogDto(
-        insertId, roomId, player.uid, player.username, player._role, player.winScore, player.winRank, JSON.stringify(player)
+        insertId, roomId, player.uid, player.username, player._role, player.winScore, player.winRank
       );
       await this.userService.recordPlayLog(playLog);
     }

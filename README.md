@@ -1,6 +1,13 @@
 # anpu
 安铺打地主的扑克牌玩法，服务端文档
 
+## TODO
+
+- [ ] 贡牌通讯
+- [ ] 清理Redis的Room
+- [ ] 游戏端显示
+- [ ] 重新匹配
+
 ## 对应关系
 
 ### 牌和数字
@@ -20,7 +27,6 @@
 |A|10|41|42|43|44|
 |2|11|45|46|47|48|
 |3|12|49|50|51|52|
-
 > 玩法没有大小鬼
 
 ### 角色
@@ -208,14 +214,13 @@ CREATE TABLE `game_log` (
 CREATE TABLE `play_log` (
   `id` int NOT NULL AUTO_INCREMENT,
   `game_log_id` int NOT NULL,
-  `room_id` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `room_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `uid` int DEFAULT NULL,
-  `username` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `role` tinyint DEFAULT NULL COMMENT '0贫农，1地主仔，2大地主，3双地',
   `score` tinyint DEFAULT NULL COMMENT '贡牌得分，有负数',
   `rank` tinyint DEFAULT NULL COMMENT '排第几',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `player` text COLLATE utf8mb4_general_ci,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ```

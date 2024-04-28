@@ -103,6 +103,6 @@ export default class UserService {
   @insert("insert into `game_log` (room_id, start_time, end_time, user_ids, records) values (#{room_id}, #{start_time}, #{end_time}, #{user_ids}, #{records})")
   public async recordGameLog(gameLog: GameLogDto): Promise<number> { return null; }
 
-  @insert("insert into `play_log` (game_log_id, room_id, uid, username, role, score, rank, player) values (#{game_log_id}, #{room_id}, #{uid}, #{username}, #{role}, #{score}, #{rank}, #{player})")
+  @insert("insert into `play_log` (game_log_id, room_id, uid, username, role, score, `rank`) values (#{game_log_id}, #{room_id}, #{uid}, #{username}, #{role}, #{score}, #{rank})")
   public async recordPlayLog(playLog: PlayLogDto): Promise<void> {}
 }

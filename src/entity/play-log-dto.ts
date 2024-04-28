@@ -6,7 +6,6 @@ export default class PlayLogDto {
     public username: string,
     public role: number,
     public score: number,
-    public rank: number,
-    public player: string
+    public rank: number
   ){}
 }
